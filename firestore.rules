@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getOrgId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId;
+    }
+
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isEditor() {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return userRole == 'admin' || userRole == 'editor';
+    }
+
+    function belongsToUserOrg(resourceOrgId) {
+      return getOrgId() == resourceOrgId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Organizations collection
+    match /organizations/{orgId} {
+      allow read: if isAuthenticated() && belongsToUserOrg(orgId);
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && belongsToUserOrg(orgId) && isEditor();
+      allow delete: if isAuthenticated() && belongsToUserOrg(orgId) && isAdmin();
+    }
+
+    // Operational units
+    match /operational_units/{unitId} {
+      allow read: if isAuthenticated() && belongsToUserOrg(resource.data.organizationId);
+      allow create: if isAuthenticated() && isEditor();
+      allow update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Audit logs - read only for admins, write for all authenticated
+    match /audit_logs/{logId} {
+      allow read: if isAuthenticated() && isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    // Emission factors - read for all, write for admins only
+    match /emission_factors/{factorId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Inventories
+    match /inventories/{inventoryId} {
+      allow read: if isAuthenticated() && belongsToUserOrg(resource.data.organizationId);
+      allow create: if isAuthenticated() && isEditor();
+      allow update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Consumption records
+    match /consumption_records/{recordId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Rankings
+    match /rankings/{rankingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Evidence files metadata
+    match /evidence/{evidenceId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+  }
+}

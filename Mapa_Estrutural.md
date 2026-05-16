@@ -24,7 +24,7 @@ A aplicação deve ser estruturada com as seguintes namespaces / rotas principai
 Agentes focados em Frontend devem planejar os componentes e o roteamento (routing) baseados nas seguintes telas principais:
 
 ### TELA 01 — Autenticação (Login/Onboarding)
-- **Funcionalidades:** Login padrão (e-mail/senha), Login Social (Google, etc.), MFA (Autenticação de Múltiplos Fatores), e Fluxo de Recuperação de Senha.
+- **Funcionalidades:** Login padrão (e-mail/senha), Login Social (Google), e Fluxo de Recuperação de Senha.
 
 ### TELA 02 — Dashboard Executivo
 - **Componentes Principais:** Cards de resumo (Consumo energético total, Emissões totais, Intensidade energética, Percentual renovável, Posição no Ranking, Evolução anual).
@@ -87,11 +87,3 @@ Agentes focados em Banco de Dados (SQL, preferencialmente) devem criar as seguin
 
 ---
 
-## 5. Funcionalidades Premium (Requisitos para Agentes de IA/Data)
-
-Agentes focados em IA devem planejar ganchos (hooks) na arquitetura para adicionar futuramente as seguintes capacidades de "Smart Analytics":
-
-- **Previsão de Consumo (Forecasting):** Uso de algoritmos de Séries Temporais para projetar consumos e emissões futuras.
-- **Benchmark Automático:** Clusterização de organizações do mesmo setor para mostrar onde o usuário está errando/acertando em comparação ao mercado.
-- **Detecção de Anomalias:** Algoritmos que flagram aumentos repentinos ou atípicos em consumos mensais para prevenir erros de digitação e fraudes (trigger de auditoria).
-- **Recomendações ESG com IA Generativa:** Geração de pareceres técnicos e planos de ação textuais sugeridos automaticamente com base no perfil do inventário calculado.
