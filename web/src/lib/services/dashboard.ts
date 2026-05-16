@@ -68,7 +68,7 @@ export async function getDashboardSummary(
   }));
   const latestInventory = inventories[0];
 
-  const [stationary, electricity, tdLosses, thermal, marketBased] =
+  const [stationary, electricity, tdLosses, marketBased] =
     await Promise.all([
       getDocs(
         query(
@@ -85,12 +85,6 @@ export async function getDashboardSummary(
       getDocs(
         query(
           collection(db, "td_losses"),
-          where("inventoryId", "==", latestInventory.id)
-        )
-      ),
-      getDocs(
-        query(
-          collection(db, "thermal_energy"),
           where("inventoryId", "==", latestInventory.id)
         )
       ),
@@ -150,6 +144,20 @@ export async function getDashboardSummary(
   const renewablePercentage =
     totalEnergy > 0 ? (renewableEnergy / totalEnergy) * 100 : 0;
 
+  const orgDoc = await getDoc(doc(db, "organizations", organizationId));
+  const orgData = orgDoc.exists() ? orgDoc.data() : null;
+  const builtArea = orgData?.builtArea || 0;
+  const energyIntensity =
+    totalEnergy > 0 && builtArea > 0 ? totalEnergy / builtArea : 0;
+
+  const yoyResults = await getYearOverYearComparison(organizationId);
+  let yearOverYearChange = 0;
+  if (yoyResults.length >= 2) {
+    const latest = yoyResults[yoyResults.length - 1].emissions;
+    const previous = yoyResults[yoyResults.length - 2].emissions;
+    yearOverYearChange = previous > 0 ? ((latest - previous) / previous) * 100 : 0;
+  }
+
   return {
     totalEnergyConsumption: totalEnergy,
     totalEmissions,
@@ -157,10 +165,10 @@ export async function getDashboardSummary(
     scope2LocationEmissions: scope2Location,
     scope2MarketEmissions: scope2Market,
     scope3Emissions: scope3,
-    energyIntensity: 0,
+    energyIntensity,
     renewablePercentage,
     tdLossPercentage,
-    yearOverYearChange: 0,
+    yearOverYearChange,
   };
 }
 

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { getInventories } from "@/lib/services/inventory";
-import { getDashboardSummary } from "@/lib/services/dashboard";
 import { cn } from "@/lib/utils";
 import {
   Loader2,
@@ -66,11 +65,6 @@ export default function ReportsPage() {
     { id: string; name: string; format: string; date: string; status: string }[]
   >([]);
 
-  useEffect(() => {
-    if (!user?.organizationId) return;
-    loadData();
-  }, [user?.organizationId]);
-
   async function loadData() {
     setLoading(true);
     const invs = await getInventories(user!.organizationId!);
@@ -84,6 +78,12 @@ export default function ReportsPage() {
     ]);
     setLoading(false);
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!user?.organizationId) return;
+    loadData();
+  }, [user?.organizationId]);
 
   async function handleGenerate(templateId: string) {
     setGenerating(templateId);
@@ -215,10 +215,13 @@ export default function ReportsPage() {
                     <CheckCircle className="h-3 w-3" />
                     Pronto
                   </span>
-                  <button className="flex items-center gap-1 rounded-lg border border-[#d1c5ae] px-3 py-1.5 text-xs text-[#4e4634] hover:bg-[#f5f3f3]">
-                    <Download className="h-3 w-3" />
-                    Baixar
-                  </button>
+                    <button
+                      className="flex items-center gap-1 rounded-lg border border-[#d1c5ae] px-3 py-1.5 text-xs text-[#4e4634] hover:bg-[#f5f3f3]"
+                      onClick={() => alert("Funcionalidade de download estará disponível em breve.")}
+                    >
+                      <Download className="h-3 w-3" />
+                      Baixar
+                    </button>
                 </div>
               </div>
             ))}

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import {
   Loader2,
@@ -24,9 +23,14 @@ export default function SettingsPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [profileForm, setProfileForm] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
+    name: "",
+    email: "",
   });
+
+  // Sync profile form when user data arrives
+  if (user && profileForm.name === "" && profileForm.email === "") {
+    setProfileForm({ name: user.name, email: user.email });
+  }
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",

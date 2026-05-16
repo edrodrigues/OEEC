@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Menu, Bell, ChevronDown, LogOut, User } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onMenuToggle: () => void;

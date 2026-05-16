@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -104,11 +104,12 @@ export default function OnboardingPage() {
         state: formData.state,
         size: formData.size,
         unitsCount: formData.unitsCount,
+        ownerId: user.id,
         ...(isMunicipality && { population: formData.population ? Number(formData.population) : undefined }),
         ...(formData.builtArea && { builtArea: Number(formData.builtArea) }),
         ...(formData.employeesCount && { employeesCount: Number(formData.employeesCount) }),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
       const orgRef = doc(db, "organizations");
@@ -118,7 +119,7 @@ export default function OnboardingPage() {
         ...user,
         organizationId: orgRef.id,
         role: "admin",
-        updatedAt: new Date(),
+        updatedAt: serverTimestamp(),
       });
 
       router.push("/dashboard");

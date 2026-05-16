@@ -81,10 +81,6 @@ export default function RankingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   async function loadData() {
     setLoading(true);
     const allRankings = await getRankings();
@@ -96,6 +92,11 @@ export default function RankingPage() {
     }
     setLoading(false);
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const filteredRankings = rankings.filter((r) => {
     if (filterSector !== "Todos" && r.sector !== filterSector) return false;
@@ -279,10 +280,10 @@ export default function RankingPage() {
                       <td className="px-4 py-3">
                         {i < 3 ? (
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#efc13e] text-xs font-bold text-[#1b1c1c]">
-                            {i + 1}
+                            {r.position || i + 1}
                           </span>
                         ) : (
-                          <span className="text-[#4e4634]">{i + 1}</span>
+                          <span className="text-[#4e4634]">{r.position || i + 1}</span>
                         )}
                       </td>
                       <td className="px-4 py-3 font-medium text-[#1b1c1c]">

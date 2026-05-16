@@ -65,6 +65,9 @@ export function calculateThermalEnergy(
   factorN2O: number,
   isBiogenic: boolean = false
 ): EmissionResult {
+  if (boilerEfficiency <= 0) {
+    return { co2: 0, ch4: 0, n2o: 0, co2e: 0, biogenicCO2: 0 };
+  }
   const estimatedConsumption = steamPurchasedGJ / (boilerEfficiency / 100);
   const co2 = estimatedConsumption * factorCO2;
   const ch4 = estimatedConsumption * factorCH4;

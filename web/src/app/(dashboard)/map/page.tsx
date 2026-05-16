@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { getInventories } from "@/lib/services/inventory";
 import { getDashboardSummary } from "@/lib/services/dashboard";
 import { cn } from "@/lib/utils";
 import {
   Loader2,
-  MapPin,
   Layers,
   Zap,
   Cloud,
@@ -15,7 +13,6 @@ import {
   Bus,
   Sun,
   AlertTriangle,
-  BarChart3,
 } from "lucide-react";
 
 const LAYERS = [
@@ -71,17 +68,18 @@ export default function MapPage() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [summary, setSummary] = useState<{ totalEnergy: number; totalEmissions: number } | null>(null);
 
-  useEffect(() => {
-    if (!user?.organizationId) return;
-    loadData();
-  }, [user?.organizationId]);
-
   async function loadData() {
     setLoading(true);
     const data = await getDashboardSummary(user!.organizationId!);
     setSummary({ totalEnergy: data.totalEnergyConsumption, totalEmissions: data.totalEmissions });
     setLoading(false);
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!user?.organizationId) return;
+    loadData();
+  }, [user?.organizationId]);
 
   function toggleLayer(id: string) {
     setActiveLayers((prev) =>

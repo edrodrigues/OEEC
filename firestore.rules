@@ -11,21 +11,33 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function getOrgId() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId;
+      return getUserData().organizationId;
     }
 
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return getUserData().role == 'admin';
     }
 
     function isEditor() {
-      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      let userRole = getUserData().role;
       return userRole == 'admin' || userRole == 'editor';
     }
 
     function belongsToUserOrg(resourceOrgId) {
       return getOrgId() == resourceOrgId;
+    }
+
+    function getOrgIdFromInventory(inventoryId) {
+      return get(/databases/$(database)/documents/inventories/$(inventoryId)).data.organizationId;
+    }
+
+    function belongsToUserOrgViaInventory(inventoryId) {
+      return getOrgId() == getOrgIdFromInventory(inventoryId);
     }
 
     // Users collection
@@ -73,6 +85,41 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isAdmin();
     }
 
+    // Stationary combustion
+    match /stationary_combustion/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Electricity consumption
+    match /electricity_consumption/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // T&D losses
+    match /td_losses/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Thermal energy
+    match /thermal_energy/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Market-based energy
+    match /market_based_energy/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
     // Consumption records
     match /consumption_records/{recordId} {
       allow read: if isAuthenticated();
@@ -82,6 +129,19 @@ service cloud.firestore {
 
     // Rankings
     match /rankings/{rankingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ESG indicators
+    match /esg_indicators/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrg(resource.data.organizationId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Benchmarks
+    match /benchmarks/{docId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }

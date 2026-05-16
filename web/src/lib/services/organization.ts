@@ -10,7 +10,6 @@ import {
   where,
   orderBy,
   serverTimestamp,
-  type FirestoreDataConverter,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Organization, OperationalUnit, User, AuditLog } from "@/types";

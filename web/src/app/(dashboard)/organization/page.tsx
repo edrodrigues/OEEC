@@ -345,7 +345,7 @@ export default function OrganizationPage() {
               Unidades Operacionais
             </h2>
             <button
-              onClick={() => setNewUnit(true)}
+              onClick={() => { setNewUnit(true); setEditForm({ name: "", city: "", state: "", address: "" }); }}
               className="flex items-center gap-2 rounded-lg bg-[#efc13e] px-4 py-2 text-sm font-semibold text-[#1b1c1c] transition-all hover:scale-[1.02]"
             >
               <Plus className="h-4 w-4" />

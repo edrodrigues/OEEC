@@ -1,7 +1,6 @@
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   setDoc,
   updateDoc,
@@ -92,7 +91,8 @@ export async function getESGData(
     q = query(
       collection(db, ESG_COLLECTION),
       where("organizationId", "==", organizationId),
-      where("year", "==", year)
+      where("year", "==", year),
+      orderBy("year", "desc")
     );
   }
 
@@ -116,7 +116,8 @@ export async function calculateAndSaveESG(
   inventoryId: string,
   year: number,
   socialData: Partial<SocialScore>,
-  governanceData: Partial<GovernanceScore>
+  governanceData: Partial<GovernanceScore>,
+  environmentalData?: Partial<EnvironmentalScore>
 ): Promise<string> {
   const stationarySnap = await getDocs(
     query(
@@ -133,12 +134,6 @@ export async function calculateAndSaveESG(
   const marketBasedSnap = await getDocs(
     query(
       collection(db, "market_based_energy"),
-      where("inventoryId", "==", inventoryId)
-    )
-  );
-  const tdLossesSnap = await getDocs(
-    query(
-      collection(db, "td_losses"),
       where("inventoryId", "==", inventoryId)
     )
   );
@@ -177,9 +172,9 @@ export async function calculateAndSaveESG(
     energyIntensity: Math.max(0, 100 - energyIntensity * 0.01),
     carbonIntensity: Math.max(0, 100 - carbonIntensity * 10),
     renewablePercentage,
-    wasteManagement: (socialData as Record<string, number>).wasteManagement || 0,
-    waterUsage: (socialData as Record<string, number>).waterUsage || 0,
-    biodiversity: (socialData as Record<string, number>).biodiversity || 0,
+    wasteManagement: environmentalData?.wasteManagement || 0,
+    waterUsage: environmentalData?.waterUsage || 0,
+    biodiversity: environmentalData?.biodiversity || 0,
     totalScore: 0,
   };
   envScore.totalScore =

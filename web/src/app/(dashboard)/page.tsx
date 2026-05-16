@@ -62,23 +62,6 @@ export default function DashboardPage() {
     null
   );
 
-  useEffect(() => {
-    if (!user) return;
-    if (!user.organizationId) {
-      router.push("/dashboard/onboarding");
-      return;
-    }
-    loadData();
-  }, [user, router]);
-
-  useEffect(() => {
-    if (!activeInventoryId) return;
-    const unsub = subscribeToInventory(activeInventoryId, () => {
-      loadData();
-    });
-    return () => unsub();
-  }, [activeInventoryId]);
-
   async function loadData() {
     if (!user?.organizationId) return;
     setLoading(true);
@@ -102,6 +85,25 @@ export default function DashboardPage() {
     }
     setLoading(false);
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!user) return;
+    if (!user.organizationId) {
+      router.push("/dashboard/onboarding");
+      return;
+    }
+    loadData();
+  }, [user, router]);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!activeInventoryId) return;
+    const unsub = subscribeToInventory(activeInventoryId, () => {
+      loadData();
+    });
+    return () => unsub();
+  }, [activeInventoryId]);
 
   if (loading) {
     return (

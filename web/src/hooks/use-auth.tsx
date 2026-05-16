@@ -12,7 +12,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import type { User } from "@/types";
 
@@ -66,8 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name,
       role: "viewer",
       organizationId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
   };
 
@@ -76,15 +76,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const credential = await signInWithPopup(auth, provider);
     const userDoc = await getDoc(doc(db, "users", credential.user.uid));
     if (!userDoc.exists()) {
-      await setDoc(doc(db, "users", credential.user.uid), {
-        id: credential.user.uid,
-        email: credential.user.email,
-        name: credential.user.displayName || "",
-        role: "viewer",
-        organizationId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      try {
+        await setDoc(doc(db, "users", credential.user.uid), {
+          id: credential.user.uid,
+          email: credential.user.email,
+          name: credential.user.displayName || "",
+          role: "viewer",
+          organizationId: null,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      } catch {
+        await signOut(auth);
+        throw new Error("Erro ao criar conta com Google. Tente novamente.");
+      }
     }
   };
 

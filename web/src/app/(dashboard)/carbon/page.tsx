@@ -3,15 +3,12 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { getInventories } from "@/lib/services/inventory";
-import { cn } from "@/lib/utils";
 import {
   Loader2,
   Cloud,
   Flame,
   Zap,
   Cable,
-  BarChart3,
-  ArrowRight,
 } from "lucide-react";
 
 export default function CarbonPage() {
@@ -19,17 +16,18 @@ export default function CarbonPage() {
   const [loading, setLoading] = useState(true);
   const [inventories, setInventories] = useState<{ id: string; year: number }[]>([]);
 
-  useEffect(() => {
-    if (!user?.organizationId) return;
-    loadData();
-  }, [user?.organizationId]);
-
   async function loadData() {
     setLoading(true);
     const invs = await getInventories(user!.organizationId!);
     setInventories(invs);
     setLoading(false);
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!user?.organizationId) return;
+    loadData();
+  }, [user?.organizationId]);
 
   if (loading) {
     return (

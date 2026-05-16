@@ -268,7 +268,8 @@ export default function InventoryPage() {
       lossPercentage: 0,
     };
     const annualLosses = Object.values(record.monthlyLosses).reduce((a, b) => a + b, 0);
-    const totalConsumption = electricityRecords.reduce((a, r) => a + r.annualConsumption, 0);
+    const electricityData = await getElectricityConsumption(selectedInventory.id);
+    const totalConsumption = electricityData.reduce((a, r) => a + r.annualConsumption, 0);
     const result = calculateTDLosses(annualLosses, record.sinFactor, totalConsumption);
     await createTDLosses({
       ...record,
@@ -700,17 +701,15 @@ function StationaryTab({ records, emissionFactors, newRecord, setNewRecord, onAd
   });
 
   function handleFuelChange(fuel: string) {
-    setForm({ ...form, fuelType: fuel, unit: "" });
     const factor = emissionFactors.find((f) => f.fuelSource === fuel);
-    if (factor) {
-      setForm((prev) => ({
-        ...prev,
-        fuelType: fuel,
-        factorCO2: factor.factorCO2,
-        factorCH4: factor.factorCH4,
-        factorN2O: factor.factorN2O,
-      }));
-    }
+    setForm((prev) => ({
+      ...prev,
+      fuelType: fuel,
+      unit: "",
+      factorCO2: factor?.factorCO2 ?? prev.factorCO2,
+      factorCH4: factor?.factorCH4 ?? prev.factorCH4,
+      factorN2O: factor?.factorN2O ?? prev.factorN2O,
+    }));
   }
 
   const emissions = calculateStationaryCombustion(

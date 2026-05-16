@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Loader2 } from "lucide-react";
 
@@ -23,9 +23,5 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 }
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <AuthProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </AuthProvider>
-  );
+  return <DashboardContent>{children}</DashboardContent>;
 }

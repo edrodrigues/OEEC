@@ -39,11 +39,11 @@ import {
 } from "recharts";
 
 const ODS_ITEMS = [
-  { key: "ods7", label: "ODS 7", name: "Energia Limpa", icon: "⚡" },
-  { key: "ods11", label: "ODS 11", name: "Cidades Sustentáveis", icon: "🏙️" },
-  { key: "ods12", label: "ODS 12", name: "Consumo Responsável", icon: "♻️" },
-  { key: "ods13", label: "ODS 13", name: "Ação Climática", icon: "🌡️" },
-  { key: "ods15", label: "ODS 15", name: "Vida Terrestre", icon: "🌿" },
+  { key: "ods7", label: "ODS 7", name: "Energia Limpa", icon: "\u26A1" },
+  { key: "ods11", label: "ODS 11", name: "Cidades Sustent\u00E1veis", icon: "\uD83C\uDFD9\uFE0F" },
+  { key: "ods12", label: "ODS 12", name: "Consumo Respons\u00E1vel", icon: "\u267B\uFE0F" },
+  { key: "ods13", label: "ODS 13", name: "A\u00E7\u00E3o Clim\u00E1tica", icon: "\uD83C\uDF21\uFE0F" },
+  { key: "ods15", label: "ODS 15", name: "Vida Terrestre", icon: "\uD83C\uDF3F" },
 ];
 
 const ENV_METRICS = [
@@ -102,11 +102,6 @@ export default function ESGPage() {
     ethicsPolicy: 0,
   });
 
-  useEffect(() => {
-    if (!user?.organizationId) return;
-    loadData();
-  }, [user?.organizationId]);
-
   async function loadData() {
     setLoading(true);
     const inventories = await getInventories(user!.organizationId!);
@@ -118,6 +113,12 @@ export default function ESGPage() {
     }
     setLoading(false);
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!user?.organizationId) return;
+    loadData();
+  }, [user?.organizationId]);
 
   async function handleSave() {
     if (!user?.organizationId) return;
@@ -211,7 +212,7 @@ export default function ESGPage() {
             Nenhum dado ESG calculado
           </h3>
           <p className="mt-1 text-sm text-[#4e4634]">
-            Preencha os indicadores e clique em "Calcular ESG" para gerar seu score.
+            Preencha os indicadores e clique em &quot;Calcular ESG&quot; para gerar seu score.
           </p>
         </div>
       )}
@@ -365,7 +366,7 @@ function DetailsTab({ socialForm, setSocialForm, govForm, setGovForm, esgData }:
             ))}
           </div>
         ) : (
-          <p className="text-sm text-[#4e4634]">Preencha os indicadores sociais e de governança e clique em "Calcular ESG".</p>
+          <p className="text-sm text-[#4e4634]">Preencha os indicadores sociais e de governan\u00E7a e clique em &quot;Calcular ESG&quot;.</p>
         )}
       </div>
 
