@@ -45,7 +45,7 @@ const brazilianStates = [
 ];
 
 export default function OnboardingPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -121,6 +121,8 @@ export default function OnboardingPage() {
         role: "admin",
         updatedAt: serverTimestamp(),
       });
+
+      await refreshUser();
 
       router.push("/dashboard");
     } catch {
