@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   getInventories,
@@ -40,7 +40,6 @@ import { CommuteStep } from "@/components/inventory/wizard/steps/CommuteStep";
 import { ReviewStep } from "@/components/inventory/wizard/steps/ReviewStep";
 import { FileText, Flame, Car, Zap, ShoppingCart, Plane, Home, BarChart3, Plus, Loader2 } from "lucide-react";
 import type { InventoryTotals } from "@/lib/data/inventory-types";
-import { cn } from "@/lib/utils";
 
 const WIZARD_STEPS: WizardStep[] = [
   { id: "intro", label: "Introdução", shortLabel: "Intro", icon: FileText },
@@ -59,17 +58,16 @@ export default function InventoryPage() {
   const { user } = useAuth();
   const [inventories, setInventories] = useState<Inventory[]>([]);
   const [selectedInventory, setSelectedInventory] = useState<Inventory | null>(null);
+  const [selectedId, setSelectedId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showNewInventory, setShowNewInventory] = useState(false);
   const [newInvYear, setNewInvYear] = useState(new Date().getFullYear());
 
-  // Wizard state
   const [currentStep, setCurrentStep] = useState("intro");
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
-  // Records state
   const [stationaryRecords, setStationaryRecords] = useState<any[]>([]);
   const [mobileRecords, setMobileRecords] = useState<any[]>([]);
   const [electricityLocationRecords, setElectricityLocationRecords] = useState<any[]>([]);
@@ -78,9 +76,8 @@ export default function InventoryPage() {
   const [commuteRecords, setCommuteRecords] = useState<any[]>([]);
   const [remoteWorkRecords, setRemoteWorkRecords] = useState<any[]>([]);
 
-  // Auto-save debounce
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const pendingChangesRef = useRef(false);
+  const pendingIntroChangesRef = useRef<Partial<Inventory> | null>(null);
 
   useEffect(() => {
     if (!user?.organizationId) return;
@@ -89,188 +86,266 @@ export default function InventoryPage() {
 
   useEffect(() => {
     if (selectedInventory) {
+      setSelectedId(selectedInventory.id);
       loadAllRecords(selectedInventory.id);
     }
   }, [selectedInventory?.id]);
 
-  // Auto-save on changes
   useEffect(() => {
     if (!selectedInventory || currentStep === "intro" || currentStep === "review") return;
-    if (pendingChangesRef.current) return;
+    const changes = pendingIntroChangesRef.current;
+    if (!changes) return;
 
-    pendingChangesRef.current = true;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      setSaveStatus("saving");
-      pendingChangesRef.current = false;
-      // Auto-save is triggered by individual record additions
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 2000);
-    }, 5000);
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        setSaveStatus("saving");
+        await updateInventory(selectedInventory.id, changes);
+        setSelectedInventory((prev) => prev ? { ...prev, ...changes } : null);
+        pendingIntroChangesRef.current = null;
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2000);
+      } catch {
+        setSaveStatus("error");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+    }, 3000);
 
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [stationaryRecords, mobileRecords, electricityLocationRecords, electricityMarketRecords, businessTravelRecords, commuteRecords, remoteWorkRecords]);
+  }, [selectedInventory, currentStep, stationaryRecords.length, mobileRecords.length, electricityLocationRecords.length, electricityMarketRecords.length, businessTravelRecords.length, commuteRecords.length, remoteWorkRecords.length]);
 
   async function loadInventories() {
     setLoading(true);
-    const invs = await getInventories(user!.organizationId!);
-    setInventories(invs);
-    if (invs.length > 0) setSelectedInventory(invs[0]);
-    setLoading(false);
+    try {
+      const invs = await getInventories(user!.organizationId!);
+      setInventories(invs);
+      if (invs.length > 0) {
+        setSelectedInventory(invs[0]);
+        setSelectedId(invs[0].id);
+      }
+    } catch {
+      setSaveStatus("error");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function loadAllRecords(inventoryId: string) {
-    const [stationary, mobile, elecLoc, elecMarket, bizTravel, commute, remote] = await Promise.all([
-      getStationaryCombustion(inventoryId),
-      getMobileCombustion(inventoryId),
-      getElectricityConsumption(inventoryId),
-      getMarketBasedEnergy(inventoryId),
-      getBusinessTravel(inventoryId),
-      getCommute(inventoryId),
-      getRemoteWork(inventoryId),
-    ]);
-    setStationaryRecords(stationary);
-    setMobileRecords(mobile);
-    setElectricityLocationRecords(elecLoc);
-    setElectricityMarketRecords(elecMarket);
-    setBusinessTravelRecords(bizTravel);
-    setCommuteRecords(commute);
-    setRemoteWorkRecords(remote);
+    try {
+      const [stationary, mobile, elecLoc, elecMarket, bizTravel, commute, remote] = await Promise.all([
+        getStationaryCombustion(inventoryId),
+        getMobileCombustion(inventoryId),
+        getElectricityConsumption(inventoryId),
+        getMarketBasedEnergy(inventoryId),
+        getBusinessTravel(inventoryId),
+        getCommute(inventoryId),
+        getRemoteWork(inventoryId),
+      ]);
+      setStationaryRecords(stationary);
+      setMobileRecords(mobile);
+      setElectricityLocationRecords(elecLoc);
+      setElectricityMarketRecords(elecMarket);
+      setBusinessTravelRecords(bizTravel);
+      setCommuteRecords(commute);
+      setRemoteWorkRecords(remote);
+    } catch {
+      setSaveStatus("error");
+    }
   }
 
   async function handleCreateInventory() {
     if (!user) return;
     setCreating(true);
-    const id = await createInventory({
-      organizationId: user.organizationId!,
-      year: newInvYear,
-      organizationName: "",
-      address: "",
-      technicalResponsible: "",
-      responsibleRole: "",
-      contactPhone: "",
-      contactEmail: "",
-      operationalUnit: "",
-      city: "",
-      state: "",
-      sector: "",
-      organizationType: "",
-      notes: "",
-    });
-    await loadInventories();
-    const newInv = inventories.find((i) => i.id === id) || { id, year: newInvYear } as Inventory;
-    setSelectedInventory({ ...newInv, year: newInvYear } as Inventory);
-    setShowNewInventory(false);
-    setCreating(false);
+    try {
+      const id = await createInventory({
+        organizationId: user.organizationId!,
+        year: newInvYear,
+        organizationName: "",
+        address: "",
+        technicalResponsible: "",
+        responsibleRole: "",
+        contactPhone: "",
+        contactEmail: "",
+        operationalUnit: "",
+        city: "",
+        state: "",
+        sector: "",
+        organizationType: "",
+        notes: "",
+      });
+      const newInv: Inventory = {
+        id,
+        organizationId: user.organizationId!,
+        year: newInvYear,
+        organizationName: "",
+        address: "",
+        technicalResponsible: "",
+        responsibleRole: "",
+        contactPhone: "",
+        contactEmail: "",
+        operationalUnit: "",
+        city: "",
+        state: "",
+        sector: "",
+        organizationType: "",
+        status: "draft",
+        notes: "",
+        completionPercentage: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      setInventories((prev) => [newInv, ...prev]);
+      setSelectedInventory(newInv);
+      setSelectedId(id);
+      setCurrentStep("intro");
+      setCompletedSteps([]);
+      setShowNewInventory(false);
+    } catch {
+      setSaveStatus("error");
+    } finally {
+      setCreating(false);
+    }
   }
 
   function handleIntroSave(data: Partial<Inventory>) {
     if (!selectedInventory) return;
+    pendingIntroChangesRef.current = { ...pendingIntroChangesRef.current, ...data };
     setSelectedInventory((prev) => prev ? { ...prev, ...data } : null);
   }
 
-  // Record handlers
+  async function withSaveStatus(fn: () => Promise<void>) {
+    try {
+      setSaveStatus("saving");
+      await fn();
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+  }
+
   async function handleAddStationary(record: any) {
     if (!selectedInventory) return;
-    await createStationaryCombustion({ ...record, inventoryId: selectedInventory.id });
-    await loadAllRecords(selectedInventory.id);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
+    await withSaveStatus(async () => {
+      await createStationaryCombustion({ ...record, inventoryId: selectedInventory.id });
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleDeleteStationary(id: string) {
     if (!selectedInventory) return;
-    await deleteStationaryCombustion(id);
-    await loadAllRecords(selectedInventory.id);
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+    await withSaveStatus(async () => {
+      await deleteStationaryCombustion(id);
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleAddMobile(record: any) {
     if (!selectedInventory) return;
-    await createMobileCombustion({ ...record, inventoryId: selectedInventory.id });
-    await loadAllRecords(selectedInventory.id);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
+    await withSaveStatus(async () => {
+      await createMobileCombustion({ ...record, inventoryId: selectedInventory.id });
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleDeleteMobile(id: string) {
     if (!selectedInventory) return;
-    await deleteMobileCombustion(id);
-    await loadAllRecords(selectedInventory.id);
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+    await withSaveStatus(async () => {
+      await deleteMobileCombustion(id);
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleAddElectricityLocation(record: any) {
     if (!selectedInventory) return;
-    await createElectricityConsumption({ ...record, inventoryId: selectedInventory.id });
-    await loadAllRecords(selectedInventory.id);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
+    await withSaveStatus(async () => {
+      await createElectricityConsumption({ ...record, inventoryId: selectedInventory.id });
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleDeleteElectricityLocation(id: string) {
     if (!selectedInventory) return;
-    await deleteElectricityConsumption(id);
-    await loadAllRecords(selectedInventory.id);
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+    await withSaveStatus(async () => {
+      await deleteElectricityConsumption(id);
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleAddElectricityMarket(record: any) {
     if (!selectedInventory) return;
-    await createMarketBasedEnergy({ ...record, inventoryId: selectedInventory.id });
-    await loadAllRecords(selectedInventory.id);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
+    await withSaveStatus(async () => {
+      await createMarketBasedEnergy({ ...record, inventoryId: selectedInventory.id });
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleDeleteElectricityMarket(id: string) {
     if (!selectedInventory) return;
-    await deleteMarketBasedEnergy(id);
-    await loadAllRecords(selectedInventory.id);
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+    await withSaveStatus(async () => {
+      await deleteMarketBasedEnergy(id);
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleAddBusinessTravel(record: any) {
     if (!selectedInventory) return;
-    await createBusinessTravel({ ...record, inventoryId: selectedInventory.id });
-    await loadAllRecords(selectedInventory.id);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
+    await withSaveStatus(async () => {
+      await createBusinessTravel({ ...record, inventoryId: selectedInventory.id });
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleDeleteBusinessTravel(id: string) {
     if (!selectedInventory) return;
-    await deleteBusinessTravel(id);
-    await loadAllRecords(selectedInventory.id);
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+    await withSaveStatus(async () => {
+      await deleteBusinessTravel(id);
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleAddCommute(record: any) {
     if (!selectedInventory) return;
-    await createCommute({ ...record, inventoryId: selectedInventory.id });
-    await loadAllRecords(selectedInventory.id);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
+    await withSaveStatus(async () => {
+      await createCommute({ ...record, inventoryId: selectedInventory.id });
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleDeleteCommute(id: string) {
     if (!selectedInventory) return;
-    await deleteCommute(id);
-    await loadAllRecords(selectedInventory.id);
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+    await withSaveStatus(async () => {
+      await deleteCommute(id);
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleAddRemoteWork(record: any) {
     if (!selectedInventory) return;
-    await createRemoteWork({ ...record, inventoryId: selectedInventory.id });
-    await loadAllRecords(selectedInventory.id);
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
+    await withSaveStatus(async () => {
+      await createRemoteWork({ ...record, inventoryId: selectedInventory.id });
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
   async function handleDeleteRemoteWork(id: string) {
     if (!selectedInventory) return;
-    await deleteRemoteWork(id);
-    await loadAllRecords(selectedInventory.id);
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+    await withSaveStatus(async () => {
+      await deleteRemoteWork(id);
+      await loadAllRecords(selectedInventory.id);
+    });
   }
 
-  // Navigation
   const currentIndex = WIZARD_STEPS.findIndex((s) => s.id === currentStep);
   const isFirstStep = currentIndex === 0;
   const isLastStep = currentIndex === WIZARD_STEPS.length - 1;
@@ -305,7 +380,14 @@ export default function InventoryPage() {
     setCurrentStep(stepId);
   }
 
-  // Calculate totals
+  function handleSelectInventory(id: string) {
+    const inv = inventories.find((i) => i.id === id);
+    setSelectedInventory(inv || null);
+    setSelectedId(id);
+    setCurrentStep("intro");
+    setCompletedSteps([]);
+  }
+
   const totals: InventoryTotals = {
     scope1: {
       stationaryCombustion: stationaryRecords.reduce((a, r) => a + (r.totalCO2e || 0), 0),
@@ -344,17 +426,13 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      {/* Inventory Selector */}
       {!selectedInventory && (
         <div className="rounded-xl border border-[#d1c5ae]/20 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-[#1b1c1c]">Selecione ou crie um inventário</h2>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <select
-              value=""
-              onChange={(e) => {
-                const inv = inventories.find((i) => i.id === e.target.value);
-                setSelectedInventory(inv || null);
-              }}
+              value={selectedId}
+              onChange={(e) => handleSelectInventory(e.target.value)}
               className="flex-1 rounded-lg border border-[#d1c5ae] bg-white px-3 py-2 text-sm focus:border-[#efc13e] focus:outline-none"
             >
               <option value="">Selecionar inventário existente...</option>
@@ -416,77 +494,79 @@ export default function InventoryPage() {
           title={`Inventário ${selectedInventory.year}`}
           description="Preencha cada seção do inventário de emissões de gases de efeito estufa."
         >
-          {currentStep === "intro" && (
-            <IntroStep inventory={selectedInventory} onSave={handleIntroSave} />
-          )}
+          <div key={`${selectedInventory.id}-${currentStep}`}>
+            {currentStep === "intro" && (
+              <IntroStep inventory={selectedInventory} onSave={handleIntroSave} />
+            )}
 
-          {currentStep === "stationary" && (
-            <StationaryCombustionStep
-              records={stationaryRecords}
-              onAdd={handleAddStationary}
-              onDelete={handleDeleteStationary}
-            />
-          )}
+            {currentStep === "stationary" && (
+              <StationaryCombustionStep
+                records={stationaryRecords}
+                onAdd={handleAddStationary}
+                onDelete={handleDeleteStationary}
+              />
+            )}
 
-          {currentStep === "mobile" && (
-            <MobileCombustionStep
-              records={mobileRecords}
-              onAdd={handleAddMobile}
-              onDelete={handleDeleteMobile}
-            />
-          )}
+            {currentStep === "mobile" && (
+              <MobileCombustionStep
+                records={mobileRecords}
+                onAdd={handleAddMobile}
+                onDelete={handleDeleteMobile}
+              />
+            )}
 
-          {currentStep === "electricity-location" && (
-            <ElectricityLocationStep
-              records={electricityLocationRecords}
-              onAdd={handleAddElectricityLocation}
-              onDelete={handleDeleteElectricityLocation}
-            />
-          )}
+            {currentStep === "electricity-location" && (
+              <ElectricityLocationStep
+                records={electricityLocationRecords}
+                onAdd={handleAddElectricityLocation}
+                onDelete={handleDeleteElectricityLocation}
+              />
+            )}
 
-          {currentStep === "electricity-market" && (
-            <ElectricityMarketStep
-              records={electricityMarketRecords}
-              onAdd={handleAddElectricityMarket}
-              onDelete={handleDeleteElectricityMarket}
-            />
-          )}
+            {currentStep === "electricity-market" && (
+              <ElectricityMarketStep
+                records={electricityMarketRecords}
+                onAdd={handleAddElectricityMarket}
+                onDelete={handleDeleteElectricityMarket}
+              />
+            )}
 
-          {currentStep === "business-travel" && (
-            <BusinessTravelStep
-              records={businessTravelRecords}
-              onAdd={handleAddBusinessTravel}
-              onDelete={handleDeleteBusinessTravel}
-            />
-          )}
+            {currentStep === "business-travel" && (
+              <BusinessTravelStep
+                records={businessTravelRecords}
+                onAdd={handleAddBusinessTravel}
+                onDelete={handleDeleteBusinessTravel}
+              />
+            )}
 
-          {currentStep === "commute" && (
-            <CommuteStep
-              commuteRecords={commuteRecords}
-              remoteWorkRecords={remoteWorkRecords}
-              onAddCommute={handleAddCommute}
-              onAddRemoteWork={handleAddRemoteWork}
-              onDeleteCommute={handleDeleteCommute}
-              onDeleteRemoteWork={handleDeleteRemoteWork}
-            />
-          )}
+            {currentStep === "commute" && (
+              <CommuteStep
+                commuteRecords={commuteRecords}
+                remoteWorkRecords={remoteWorkRecords}
+                onAddCommute={handleAddCommute}
+                onAddRemoteWork={handleAddRemoteWork}
+                onDeleteCommute={handleDeleteCommute}
+                onDeleteRemoteWork={handleDeleteRemoteWork}
+              />
+            )}
 
-          {currentStep === "review" && (
-            <ReviewStep
-              totals={totals}
-              inventoryName={selectedInventory.organizationName || "Inventário"}
-              inventoryYear={selectedInventory.year}
-              recordCounts={{
-                stationary: stationaryRecords.length,
-                mobile: mobileRecords.length,
-                electricityLocation: electricityLocationRecords.length,
-                electricityMarket: electricityMarketRecords.length,
-                businessTravel: businessTravelRecords.length,
-                commute: commuteRecords.length,
-                remoteWork: remoteWorkRecords.length,
-              }}
-            />
-          )}
+            {currentStep === "review" && (
+              <ReviewStep
+                totals={totals}
+                inventoryName={selectedInventory.organizationName || "Inventário"}
+                inventoryYear={selectedInventory.year}
+                recordCounts={{
+                  stationary: stationaryRecords.length,
+                  mobile: mobileRecords.length,
+                  electricityLocation: electricityLocationRecords.length,
+                  electricityMarket: electricityMarketRecords.length,
+                  businessTravel: businessTravelRecords.length,
+                  commute: commuteRecords.length,
+                  remoteWork: remoteWorkRecords.length,
+                }}
+              />
+            )}
+          </div>
         </WizardLayout>
       )}
     </div>
