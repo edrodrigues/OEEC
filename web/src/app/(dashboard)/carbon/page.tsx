@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { getInventories } from "@/lib/services/inventory";
+import { cn } from "@/lib/utils";
 import {
   Loader2,
   Cloud,
