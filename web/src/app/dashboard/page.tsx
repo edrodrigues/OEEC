@@ -90,7 +90,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return;
     if (!user.organizationId) {
-      router.push("/onboarding");
+      router.push("/dashboard/onboarding");
       return;
     }
     loadData();
@@ -135,7 +135,7 @@ export default function DashboardPage() {
             relatórios.
           </p>
           <button
-            onClick={() => router.push("/inventory")}
+            onClick={() => router.push("/dashboard/inventory")}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#efc13e] px-6 py-2.5 text-sm font-semibold text-[#1b1c1c] transition-all hover:scale-[1.02] hover:shadow-lg"
           >
             Iniciar Inventário
@@ -391,7 +391,7 @@ export default function DashboardPage() {
             análises detalhadas.
           </p>
           <button
-            onClick={() => router.push("/inventory")}
+            onClick={() => router.push("/dashboard/inventory")}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#efc13e] px-5 py-2 text-sm font-semibold text-[#1b1c1c] hover:scale-[1.02]"
           >
             Ir para Inventário
