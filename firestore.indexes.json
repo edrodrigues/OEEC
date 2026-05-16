@@ -1,6 +1,22 @@
 {
   "indexes": [
     {
+      "collectionGroup": "inventories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "year", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "operational_units",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "rankings",
       "queryScope": "COLLECTION",
       "fields": [
@@ -26,14 +42,6 @@
       ]
     },
     {
-      "collectionGroup": "inventories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organizationId", "order": "ASCENDING" },
-        { "fieldPath": "year", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "esg_indicators",
       "queryScope": "COLLECTION",
       "fields": [
@@ -47,14 +55,6 @@
       "fields": [
         { "fieldPath": "organizationId", "order": "ASCENDING" },
         { "fieldPath": "year", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "operational_units",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "organizationId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {
