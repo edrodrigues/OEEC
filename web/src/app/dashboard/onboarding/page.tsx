@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, collection, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
         updatedAt: serverTimestamp(),
       };
 
-      const orgRef = doc(db, "organizations");
+      const orgRef = doc(collection(db, "organizations"));
       await setDoc(orgRef, orgData);
 
       await setDoc(doc(db, "users", user.id), {
