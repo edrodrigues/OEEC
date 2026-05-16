@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 export default function RegisterPage() {
   const { signUp, signInWithGoogle } = useAuth();
@@ -52,8 +53,8 @@ export default function RegisterPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#fbf9f8] px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#efc13e]">
-            <span className="text-xl font-bold text-[#1b1c1c]">O</span>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center">
+            <Logo size={56} />
           </div>
           <h1 className="text-2xl font-bold text-[#1b1c1c]">Criar Conta</h1>
           <p className="mt-1 text-sm text-[#4e4634]">

@@ -13,6 +13,7 @@ import {
   X,
   CheckCircle2,
 } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 export default function HomePage() {
   return (
@@ -21,9 +22,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 border-b border-[#d1c5ae]/20 bg-[#fbf9f8]/80 backdrop-blur-md">
         <nav className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 lg:px-12">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#efc13e]">
-              <Sun className="h-5 w-5 text-[#1b1c1c]" />
-            </div>
+            <Logo size={40} />
             <span className="text-xl font-bold text-[#1b1c1c]">OEEC</span>
           </Link>
 
@@ -307,9 +306,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-[1440px] px-4 py-12 sm:px-6 lg:px-12">
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#efc13e]">
-                <Sun className="h-4 w-4 text-[#1b1c1c]" />
-              </div>
+              <Logo size={32} />
               <span className="text-sm font-semibold text-[#1b1c1c]">
                 OEEC
               </span>
