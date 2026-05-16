@@ -458,3 +458,77 @@ export async function updateConsumptionRecord(
 export async function deleteConsumptionRecord(id: string) {
   await deleteDoc(doc(db, CONSUMPTION_RECORDS_COLLECTION, id));
 }
+
+// New collections for wizard-based inventory
+const MOBILE_COMBUSTION_COLLECTION = "mobile_combustion";
+const BUSINESS_TRAVEL_COLLECTION = "business_travel";
+const COMMUTE_COLLECTION = "commute";
+const REMOTE_WORK_COLLECTION = "remote_work";
+
+// Mobile Combustion
+export async function getMobileCombustion(inventoryId: string) {
+  const q = query(collection(db, MOBILE_COMBUSTION_COLLECTION), where("inventoryId", "==", inventoryId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+}
+
+export async function createMobileCombustion(data: any) {
+  const ref = doc(collection(db, MOBILE_COMBUSTION_COLLECTION));
+  await setDoc(ref, { ...data, id: ref.id, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  return ref.id;
+}
+
+export async function deleteMobileCombustion(id: string) {
+  await deleteDoc(doc(db, MOBILE_COMBUSTION_COLLECTION, id));
+}
+
+// Business Travel
+export async function getBusinessTravel(inventoryId: string) {
+  const q = query(collection(db, BUSINESS_TRAVEL_COLLECTION), where("inventoryId", "==", inventoryId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+}
+
+export async function createBusinessTravel(data: any) {
+  const ref = doc(collection(db, BUSINESS_TRAVEL_COLLECTION));
+  await setDoc(ref, { ...data, id: ref.id, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  return ref.id;
+}
+
+export async function deleteBusinessTravel(id: string) {
+  await deleteDoc(doc(db, BUSINESS_TRAVEL_COLLECTION, id));
+}
+
+// Commute
+export async function getCommute(inventoryId: string) {
+  const q = query(collection(db, COMMUTE_COLLECTION), where("inventoryId", "==", inventoryId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+}
+
+export async function createCommute(data: any) {
+  const ref = doc(collection(db, COMMUTE_COLLECTION));
+  await setDoc(ref, { ...data, id: ref.id, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  return ref.id;
+}
+
+export async function deleteCommute(id: string) {
+  await deleteDoc(doc(db, COMMUTE_COLLECTION, id));
+}
+
+// Remote Work
+export async function getRemoteWork(inventoryId: string) {
+  const q = query(collection(db, REMOTE_WORK_COLLECTION), where("inventoryId", "==", inventoryId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+}
+
+export async function createRemoteWork(data: any) {
+  const ref = doc(collection(db, REMOTE_WORK_COLLECTION));
+  await setDoc(ref, { ...data, id: ref.id, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  return ref.id;
+}
+
+export async function deleteRemoteWork(id: string) {
+  await deleteDoc(doc(db, REMOTE_WORK_COLLECTION, id));
+}

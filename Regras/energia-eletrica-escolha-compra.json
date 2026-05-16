@@ -1,0 +1,116 @@
+{
+  "metadata": {
+    "section": "Energia Elétrica — Abordagem de Escolha de Compra",
+    "inventoryYear": 2025,
+    "scope": "Escopo 2 (market-based)",
+    "description": "Emissões indiretas pela compra de energia elétrica — abordagem baseada na escolha de compra (fator de emissão específico por fonte de geração)",
+    "reference": "https://bibliotecadigital.fgv.br/dspace/handle/10438/30250",
+    "instructions": [
+      "A unidade de entrada para os cálculos é MWh (megawatt-hora).",
+      "O fator de emissão está diretamente associado à origem da geração de eletricidade, sendo necessária comprovação e rastreamento.",
+      "Relate apenas uma das duas opções (mensal OU anual). A opção mensal é mais precisa.",
+      "Os fatores de emissão por tipo de fonte devem ser preenchidos pelo usuário.",
+      "Para fontes termelétricas, é necessário informar a eficiência da planta geradora."
+    ]
+  },
+  "trackedElectricity": {
+    "description": "Eletricidade comprada com rastreamento de origem (Tabela 1)",
+    "instructions": [
+      "Para cada unidade ou estrutura, informe apenas as quantidades mensais OU o total anual.",
+      "Para termelétricas, informe a eficiência da planta geradora.",
+      "O usuário pode informar seu próprio fator de emissão ou usar o sugerido."
+    ],
+    "sources": [
+      {
+        "sourceId": "Bldg-012",
+        "description": "Fábrica São Paulo",
+        "generationType": "Termoelétrica",
+        "fuel": "Bagaço de Cana",
+        "hasCustomEmissionFactor": false,
+        "plantEfficiency_pct": 32,
+        "reportingMode": "monthly",
+        "monthlyConsumption_mWh": {
+          "jan": 100, "feb": 120, "mar": 150, "apr": 140,
+          "may": 120, "jun": 90, "jul": 80, "aug": 160,
+          "sep": 150, "oct": 130, "nov": 100, "dec": 40
+        },
+        "annualConsumption_mWh": null,
+        "customEmissionFactors": null,
+        "suggestedEmissionFactors": {
+          "co2_t_per_mwh": 0.0,
+          "ch4_t_per_mwh": 0.0001,
+          "n2o_t_per_mwh": 0.00001,
+          "biogenicCO2_t_per_mwh": 0.3604
+        },
+        "calculated": {
+          "totalConsumption_mWh": 1380,
+          "totalCO2_t": null,
+          "totalCH4_t": 0.5,
+          "totalN2O_t": 0.1,
+          "totalCO2e_t": 30.1,
+          "totalBiogenicCO2_t": 1137.4
+        }
+      }
+    ],
+    "totals": {
+      "totalCO2_t": 0.0,
+      "totalCH4_t": 0.0,
+      "totalN2O_t": 0.0,
+      "totalCO2e_t": 0.0,
+      "totalBiogenicCO2_t": 0.0
+    }
+  },
+  "untrackedElectricity": {
+    "description": "Energia não rastreada (Tabela 2)",
+    "instructions": [
+      "Utilize para relatar emissões de energia adquirida que não foi rastreada ou não atendeu aos critérios de qualidade.",
+      "Se a organização consome somente do SIN, o cálculo automático da energia não rastreada é feito com o FE do SIN — não preencha esta tabela.",
+      "Se houver consumo em Sistemas Isolados com parcela não rastreada, reporte as emissões aqui."
+    ],
+    "sources": [
+      {
+        "sourceId": "Bldg-012",
+        "description": "Fábrica Porto Alegre",
+        "emissions": {
+          "co2_t": 0.535,
+          "ch4_t": 0.025,
+          "n2o_t": 0.004,
+          "co2e_t": 2.295,
+          "biogenicCO2_t": 0.105
+        }
+      }
+    ],
+    "untrackedCalculation": {
+      "sinEnergy_mWh": null,
+      "trackedEnergy_mWh": null,
+      "untrackedEmissionsReported_t": null,
+      "resultingUntrackedEnergy_mWh": null,
+      "monthlyUntracked_mWh": {
+        "jan": null, "feb": null, "mar": null, "apr": null,
+        "may": null, "jun": null, "jul": null, "aug": null,
+        "sep": null, "oct": null, "nov": null, "dec": null
+      }
+    },
+    "totals": {
+      "co2_t": 0.0,
+      "ch4_t": 0.0,
+      "n2o_t": 0.0,
+      "co2e_t": 0.0,
+      "biogenicCO2_t": 0.0
+    }
+  },
+  "untrackedSummary": {
+    "description": "Resumo de emissões de energia elétrica não rastreada (Tabela 3)",
+    "year": 2025,
+    "untrackedEnergy_mWh_per_year": 0.0,
+    "fossilCO2_t_per_year": 0.0,
+    "ch4_t_per_year": 0.0,
+    "n2o_t_per_year": 0.0,
+    "biogenicCO2_t_per_year": 0.0,
+    "co2e_t_per_year": 0.0
+  },
+  "totals": {
+    "totalCO2e_t": 0.0,
+    "totalBiogenicCO2_t": 0.0
+  }
+}

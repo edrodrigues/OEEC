@@ -1,0 +1,227 @@
+{
+  "metadata": {
+    "section": "Combustão Móvel",
+    "inventoryYear": 2025,
+    "scope": "Escopo 1",
+    "description": "Emissões por combustão móvel — modais rodoviário, ferroviário, hidroviário e aéreo",
+    "notes": [
+      "Para viagens em aeronaves comerciais e de terceiros, utilize a aba 'Viagens a Negócios' (Escopo 3).",
+      "Combustíveis fósseis no Brasil possuem percentual de biocombustível incorporado; a separação é automática.",
+      "Emissões de CO₂ biogênico não são incluídas nas emissões totais, mas são indicadas separadamente.",
+      "Para veículos híbridos plug-in, considere apenas o consumo de combustível. Emissões de eletricidade → Escopo 2."
+    ]
+  },
+  "gwp": {
+    "CO2": 1,
+    "CH4": 27.2,
+    "N2O": 273
+  },
+  "roadTransport": {
+    "instructions": [
+      "Escolha UMA das três opções de cálculo. Não preencha a mesma fonte em mais de uma opção.",
+      "Opção 1 (tipo + ano da frota) > Opção 2 (tipo de combustível) > Opção 3 (distância) em precisão.",
+      "Informe apenas consumo mensal OU anual, não ambos simultaneamente."
+    ],
+    "option1_byFleetType": {
+      "description": "Cálculo por tipo e ano de fabricação da frota de veículos",
+      "sources": [
+        {
+          "fleetId": "Frota-014",
+          "description": "Frota-Unidade SP",
+          "vehicleType": "Automóvel flex a gasolina",
+          "fleetYear": 2014,
+          "reportingMode": "monthly",
+          "monthlyConsumption": {
+            "jan": 1000, "feb": 900, "mar": 800, "apr": 500,
+            "may": 1200, "jun": 90, "jul": 0, "aug": 300,
+            "sep": 200, "oct": 1100, "nov": 1000, "dec": 100
+          },
+          "annualConsumption": null,
+          "unit": "litros",
+          "fossilFuel": "Gasolina Automotiva (pura)",
+          "biofuel": "Etanol Anidro",
+          "calculated": {
+            "monthlyFossilQuantity": [730, 675, 584, 365, 876, 66, 0, 219, 146, 803, 730, 73],
+            "monthlyBiofuelQuantity": [270, 243, 216, 135, 324, 24, 0, 81, 54, 297, 270, 27],
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": 2.212, "ch4_kg_per_liter": 0.0002, "n2o_kg_per_liter": 0.00023 },
+              "biofuel": { "co2_kg_per_liter": 1.526, "ch4_kg_per_liter": 0.0002, "n2o_kg_per_liter": 0.00023 }
+            },
+            "totalCO2e_t": 12.14,
+            "biogenicCO2_t": 2.96
+          }
+        }
+      ]
+    },
+    "option2_byFuelType": {
+      "description": "Cálculo por tipo de combustível consumido",
+      "sources": [
+        {
+          "fleetId": "Frota-015",
+          "description": "Caminhões-Unidade RJ",
+          "fuelType": "Óleo Diesel (comercial)",
+          "reportingMode": "monthly",
+          "monthlyConsumption": {
+            "jan": 1000, "feb": 900, "mar": 800, "apr": 500,
+            "may": 1200, "jun": 90, "jul": 10, "aug": 300,
+            "sep": 200, "oct": 1100, "nov": 1000, "dec": 100
+          },
+          "annualConsumption": null,
+          "unit": "litros",
+          "fossilFuel": "Óleo Diesel (puro)",
+          "biofuel": "Biodiesel (B100)",
+          "calculated": {
+            "monthlyFossilQuantity": [930, 837, 744, 465, 1116, 84, 9, 279, 186, 1023, 930, 93],
+            "monthlyBiofuelQuantity": [70, 63, 56, 35, 84, 6, 1, 21, 14, 77, 70, 7],
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": 2.603, "ch4_kg_per_liter": 0.0001, "n2o_kg_per_liter": 0.00014 },
+              "biofuel": { "co2_kg_per_liter": 2.431, "ch4_kg_per_liter": 0.0003, "n2o_kg_per_liter": 0.00002 }
+            },
+            "totalCO2e_t": 17.74,
+            "biogenicCO2_t": 1.23
+          }
+        }
+      ]
+    },
+    "option3_byDistance": {
+      "description": "Cálculo por distância percorrida",
+      "sources": [
+        {
+          "fleetId": "Frota-016",
+          "description": "Motos-Unidade MG",
+          "vehicleType": "Motocicleta flex a etanol",
+          "fleetYear": 2012,
+          "reportingMode": "monthly",
+          "monthlyDistance_km": {
+            "jan": 10000, "feb": 9500, "mar": 12000, "apr": 50000,
+            "may": 20000, "jun": 30000, "jul": 24000, "aug": 300,
+            "sep": 2500, "oct": 28000, "nov": 1000, "dec": 4000
+          },
+          "annualDistance_km": null,
+          "averageConsumption": 29.3,
+          "consumptionUnit": "km/litro",
+          "unit": "litros",
+          "fossilFuel": null,
+          "biofuel": "Etanol Hidratado",
+          "calculated": {
+            "monthlyFossilQuantity": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "monthlyBiofuelQuantity": [341, 324, 410, 1706, 683, 1024, 819, 10, 85, 956, 34, 137],
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": null, "ch4_kg_per_liter": null, "n2o_kg_per_liter": null },
+              "biofuel": { "co2_kg_per_liter": 1.457, "ch4_kg_per_liter": 0.0006, "n2o_kg_per_liter": 0.00006 }
+            },
+            "totalCO2e_t": 0.21,
+            "biogenicCO2_t": 9.51
+          }
+        }
+      ]
+    }
+  },
+  "railTransport": {
+    "instructions": [
+      "Utilize apenas para emissões diretas da frota ferroviária da organização.",
+      "Emissões por eletricidade no transporte ferroviário → Escopo 2 (aba 'Compra de Energia Elétrica')."
+    ],
+    "sources": [
+      {
+        "fleetId": "Frota-017",
+        "description": "Locomotivas Reg. Sul",
+        "fuelType": "Óleo Diesel (comercial)",
+        "reportingMode": "monthly",
+        "monthlyConsumption": {
+          "jan": 1000, "feb": 900, "mar": 800, "apr": 500,
+          "may": 1200, "jun": 90, "jul": 10, "aug": 300,
+          "sep": 200, "oct": 1100, "nov": 1000, "dec": 100
+        },
+        "annualConsumption": null,
+        "unit": "litros",
+        "fossilFuel": "Óleo Diesel (puro)",
+        "biofuel": "Biodiesel (B100)",
+        "calculated": {
+          "monthlyFossilQuantity": [930, 837, 744, 465, 1116, 84, 9, 279, 186, 1023, 930, 93],
+          "monthlyBiofuelQuantity": [70, 63, 56, 35, 84, 6, 1, 21, 14, 77, 70, 7],
+          "emissionFactors": {
+            "fossil": { "co2_kg_per_liter": 2.6, "ch4_kg_per_liter": 0.0, "n2o_kg_per_liter": 0.0 },
+            "biofuel": { "co2_kg_per_liter": 2.43, "ch4_kg_per_liter": 0.0, "n2o_kg_per_liter": 0.0 }
+          },
+          "totalCO2e_t": 17.74,
+          "biogenicCO2_t": 1.23
+        }
+      }
+    ]
+  },
+  "waterwayTransport": {
+    "instructions": [
+      "Utilize apenas para emissões diretas da frota hidroviária da organização.",
+      "Para 'Óleo bunker ou MF', considere 'Óleo Combustível'. Para 'Óleo diesel marítimo', considere 'Óleo Diesel (puro)'."
+    ],
+    "sources": [
+      {
+        "fleetId": "Frota-018",
+        "description": "Barcaças Reg. Norte",
+        "fuelType": "Óleo Diesel (puro)",
+        "reportingMode": "monthly",
+        "monthlyConsumption": {
+          "jan": 50, "feb": 60, "mar": 70, "apr": 45,
+          "may": 55, "jun": 80, "jul": 40, "aug": 60,
+          "sep": 25, "oct": 75, "nov": 60, "dec": 55
+        },
+        "annualConsumption": null,
+        "unit": "litros",
+        "fossilFuel": "Óleo Diesel (puro)",
+        "biofuel": null,
+        "calculated": {
+          "monthlyFossilQuantity": [46.5, 55.8, 65.1, 41.85, 51.15, 74.4, 37.2, 55.8, 23.25, 69.75, 55.8, 51.15],
+          "monthlyBiofuelQuantity": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "emissionFactors": {
+            "fossil": { "co2_kg_per_liter": 2.6, "ch4_kg_per_liter": 0.0, "n2o_kg_per_liter": 0.0 },
+            "biofuel": { "co2_kg_per_liter": null, "ch4_kg_per_liter": null, "n2o_kg_per_liter": null }
+          },
+          "totalCO2e_t": 1.66,
+          "biogenicCO2_t": 0.0
+        }
+      }
+    ]
+  },
+  "airTransport": {
+    "instructions": [
+      "Utilize apenas para emissões diretas da frota aérea da organização."
+    ],
+    "sources": [
+      {
+        "fleetId": "Frota-019",
+        "description": "Aviões domésticos",
+        "fuelType": "Querosene de Aviação",
+        "annualConsumption": 1000,
+        "unit": "litros",
+        "fossilFuel": "Querosene de Aviação",
+        "biofuel": null,
+        "calculated": {
+          "fossilQuantity": 1000,
+          "biofuelQuantity": 0,
+          "emissionFactors": {
+            "fossil": { "co2_kg_per_liter": 2.52, "ch4_kg_per_liter": 0.0, "n2o_kg_per_liter": 0.0 },
+            "biofuel": { "co2_kg_per_liter": null, "ch4_kg_per_liter": null, "n2o_kg_per_liter": null }
+          },
+          "totalCO2e_t": 2.54,
+          "biogenicCO2_t": 0.0
+        }
+      }
+    ]
+  },
+  "externalToolEmissions": [
+    {
+      "sourceId": "BRL-1409",
+      "description": "Carros da diretoria",
+      "co2_t": 120.0,
+      "ch4_t": 56.0,
+      "n2o_t": 21.0,
+      "biogenicCO2_t": 30.0,
+      "totalCO2e_t": 7778.0
+    }
+  ],
+  "totals": {
+    "totalCO2e_t": 0.0,
+    "totalBiogenicCO2_t": 0.0
+  }
+}

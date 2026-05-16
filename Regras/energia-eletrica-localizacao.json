@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "section": "Energia Elétrica — Abordagem de Localização",
+    "inventoryYear": 2025,
+    "scope": "Escopo 2 (location-based)",
+    "description": "Emissões indiretas pela compra de energia elétrica — abordagem baseada na localização (SIN e sistemas isolados)",
+    "reference": "https://bibliotecadigital.fgv.br/dspace/handle/10438/30248",
+    "instructions": [
+      "A unidade de entrada para os cálculos é MWh (megawatt-hora).",
+      "O fator de emissão utilizado é a média para geração de eletricidade no Sistema Interligado Nacional (SIN).",
+      "Relate apenas uma das duas opções (mensal OU anual). A opção mensal é mais precisa.",
+      "Os fatores de emissão variáveis estão disponíveis na aba 'Fatores variáveis'."
+    ]
+  },
+  "sinElectricity": {
+    "description": "Sistema Interligado Nacional (SIN)",
+    "instructions": [
+      "Para cada unidade ou estrutura, informe apenas as quantidades mensais OU o total anual.",
+      "Dados conflitantes (consumo anual E mensal) serão sinalizados pela ferramenta."
+    ],
+    "sources": [
+      {
+        "sourceId": "Bldg-012",
+        "description": "Fábrica São Paulo",
+        "reportingMode": "monthly",
+        "monthlyConsumption_mWh": {
+          "jan": 100, "feb": 120, "mar": 150, "apr": 140,
+          "may": 120, "jun": 90, "jul": 80, "aug": 160,
+          "sep": 150, "oct": 130, "nov": 100, "dec": 40
+        },
+        "annualConsumption_mWh": null,
+        "calculated": {
+          "monthlyEmissions_CO2_t": [5.66, 6.432, 10.44, 11.41, 10.164, 6.084, 7.72, 20.992, 18.96, 17.758, 11.93, null],
+          "totalCO2_t": 127.55,
+          "totalCH4_t": null,
+          "totalN2O_t": null
+        }
+      }
+    ]
+  },
+  "electricVehicles": {
+    "description": "Emissões de veículos elétricos",
+    "instructions": [
+      "Duas formas de reportar: medição direta de consumo (preferível, incluir na Tabela 1) ou estimativa por distância percorrida.",
+      "Garanta que não haja dupla contagem: se o veículo é abastecido dentro dos limites organizacionais e o consumo já está na Tabela 1, não repita aqui.",
+      "Emissões de veículos plug-in em modo combustível → aba 'Combustão móvel'."
+    ],
+    "sources": [
+      {
+        "fleetId": "Frota-016",
+        "description": "Veículos elétricos - Unidade MG",
+        "vehicleType": "Automóvel elétrico",
+        "reportingMode": "monthly",
+        "monthlyDistance_km": {
+          "jan": 10000, "feb": 9500, "mar": 12000, "apr": 50000,
+          "may": 20000, "jun": 30000, "jul": 24000, "aug": 300,
+          "sep": 2500, "oct": 28000, "nov": 1000, "dec": 4000
+        },
+        "annualDistance_km": null,
+        "averageConsumption": 29.3,
+        "consumptionUnit": "km/kWh",
+        "calculated": {
+          "monthlyElectricityConsumption_kWh": [341, 324, 410, 1706, 683, 1024, 819, 10, 85, 956, 34, 137],
+          "annualElectricityConsumption_kWh": 0,
+          "monthlyEmissions_CO2_t": [5.66, 6.432, 10.44, 11.41, 10.164, 6.084, 7.72, 20.992, 18.96, 17.758, 11.93, null],
+          "totalCO2_t": 127.55
+        }
+      }
+    ]
+  },
+  "summary": {
+    "description": "Resumo consumo de eletricidade proveniente do SIN",
+    "monthlyConsumption_mWh": {
+      "jan": 0, "feb": 0, "mar": 0, "apr": 0,
+      "may": 0, "jun": 0, "jul": 0, "aug": 0,
+      "sep": 0, "oct": 0, "nov": 0, "dec": 0
+    },
+    "annualConsumption_mWh": 0
+  },
+  "isolatedSystems": {
+    "description": "Sistemas isolados (não integrados ao SIN)",
+    "instructions": [
+      "Sistema isolado = gerador e consumidor conectados sem passar pelo SIN.",
+      "Relate aqui emissões de energia distribuída por linhas de transmissão não integradas ao SIN."
+    ],
+    "sources": [
+      {
+        "sourceId": "Bldg-012",
+        "description": "Fábrica Porto Alegre",
+        "emissions": {
+          "co2_t": 0.535,
+          "ch4_t": 0.025,
+          "n2o_t": 0.004,
+          "co2e_t": 2.295,
+          "biogenicCO2_t": 0.105
+        }
+      }
+    ],
+    "totals": {
+      "co2_t": 0.0,
+      "ch4_t": 0.0,
+      "n2o_t": 0.0,
+      "co2e_t": 0.0,
+      "biogenicCO2_t": 0.0
+    }
+  },
+  "totals": {
+    "totalCO2e_t": 0.0,
+    "totalBiogenicCO2_t": 0.0
+  }
+}

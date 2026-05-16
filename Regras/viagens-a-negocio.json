@@ -1,0 +1,287 @@
+{
+  "metadata": {
+    "section": "Viagens a Negócios",
+    "inventoryYear": 2025,
+    "scope": "Escopo 3 — Categoria 6 (Viagens a negócios)",
+    "description": "Emissões do transporte de funcionários para atividades de negócio em veículos de terceiros — aeronaves, trens, ônibus, automóveis e balsas",
+    "instructions": [
+      "Inclui funcionários de entidades operadas, alugadas ou de propriedade da organização, além de prestadores terceirizados e consultores.",
+      "Preencha apenas os campos de entrada (input) da ferramenta.",
+      "Para aeronaves: Opção 1 (aeroportos) é mais precisa que Opção 2 (km percorridos). Não use ambas para a mesma fonte."
+    ],
+    "airportReference": "https://www.flightmanager.com/content/AirportLocatorForm.aspx"
+  },
+  "gwp": {
+    "CO2": 1,
+    "CH4": 27.2,
+    "N2O": 273
+  },
+  "airTravel": {
+    "option1_byAirport": {
+      "description": "Cálculo por aeroportos de origem e destino (mais preciso)",
+      "instructions": [
+        "Indica-se cidade ou sigla IATA do aeroporto de partida e chegada.",
+        "Número de trechos voados permite agrupar múltiplos voos com mesma origem/destino.",
+        "Se aeroporto não cadastrado, adicione na aba 'Aeroportos': país, sigla IATA, cidade, latitude, longitude."
+      ],
+      "trips": [
+        {
+          "tripId": "1a Reunião",
+          "departure": {
+            "airportCode": "GIG",
+            "latitude": { "degrees": 22, "minutes": 48, "seconds": 32, "direction": "S" },
+            "longitude": { "degrees": 43, "minutes": 14, "seconds": 37, "direction": "O" },
+            "isValid": true
+          },
+          "arrival": {
+            "airportCode": "GRU",
+            "latitude": { "degrees": 23, "minutes": 25, "seconds": 55, "direction": "S" },
+            "longitude": { "degrees": 46, "minutes": 28, "seconds": 10, "direction": "O" },
+            "isValid": true
+          },
+          "segmentDistance_km": 337,
+          "segmentsFlown": 20,
+          "totalDistance_km": 6737,
+          "emissionFactors": {
+            "co2_kg_per_passenger_km": 0.12965,
+            "ch4_kg_per_passenger_km": 0.0000022,
+            "n2o_kg_per_passenger_km": 0.0000041
+          },
+          "calculated": {
+            "co2_t": 0.9,
+            "ch4_t": 0.00002,
+            "n2o_t": 0.00003,
+            "totalCO2e_t": 0.95
+          }
+        }
+      ]
+    },
+    "option2_byDistance": {
+      "description": "Cálculo por quilômetros percorridos",
+      "instructions": [
+        "Indique o total de km percorridos por passageiro, por tipo de viagem.",
+        "Para grupos, multiplique a quilometragem pelo número de passageiros.",
+        "Tipo de viagem aérea deve ser selecionado conforme distância do trecho (não a distância total)."
+      ],
+      "tripTypes": [
+        { "label": "Curta distância", "range": "d < 500 km" },
+        { "label": "Média distância", "range": "500 ≤ d < 3.700 km" },
+        { "label": "Longa distância", "range": "d ≥ 3.700 km" }
+      ],
+      "trips": [
+        {
+          "passengerId": "GMA-001",
+          "description": "Gerente Meio Ambiente 1",
+          "tripType": "Média distância (500 ≤ d < 3.700 km)",
+          "passengerDistance_km": 1000,
+          "emissionFactors": {
+            "co2_kg_per_passenger_km": 0.0781,
+            "ch4_kg_per_passenger_km": 0.0000004,
+            "n2o_kg_per_passenger_km": 0.0000025
+          },
+          "calculated": {
+            "co2_t": 84.32,
+            "ch4_t": 0.0004,
+            "n2o_t": 0.0027,
+            "totalCO2e_t": 0.085
+          }
+        }
+      ]
+    }
+  },
+  "railTravel": {
+    "description": "Viagens em trens e metrô (modal ferroviário)",
+    "instructions": [
+      "Inclui trens, metrô e outros veículos sobre trilhos de terceiros.",
+      "Distância percorrida por trecho = somente ida. Para ida e volta, multiplique por 2.",
+      "Número de passageiros permite agrupar funcionários com mesma distância."
+    ],
+    "trips": [
+      {
+        "tripId": "Hotel - Reunião",
+        "description": "Gerente de Meio Ambiente",
+        "transportType": "Metrô",
+        "passengers": 30,
+        "segmentDistance_km": 10,
+        "emissionFactors": {
+          "co2_g_per_passenger_km": 4.95,
+          "ch4_g_per_passenger_km": null,
+          "n2o_g_per_passenger_km": null
+        },
+        "calculated": {
+          "co2_t": 0.00015,
+          "ch4_t": null,
+          "n2o_t": null,
+          "totalCO2e_t": 0.00015
+        }
+      }
+    ]
+  },
+  "busTravel": {
+    "description": "Viagens em ônibus (não controlados pela organização)",
+    "instructions": [
+      "Ônibus de viagem = trechos entre rodoviárias. Ônibus municipal = trechos urbanos.",
+      "Distância por trecho = somente ida. Para ida e volta, multiplique por 2."
+    ],
+    "trips": [
+      {
+        "tripId": "Hotel - Reunião",
+        "busType": "Ônibus municipal",
+        "passengers": 1,
+        "segmentDistance_km": 10,
+        "emissionFactors": {
+          "fossil": {
+            "co2_kg_per_passenger_km": 0.084,
+            "ch4_kg_per_passenger_km": 0.000004,
+            "n2o_kg_per_passenger_km": 0.000004
+          },
+          "biofuel": {
+            "co2_kg_per_passenger_km": 0.08,
+            "ch4_kg_per_passenger_km": 0.000011,
+            "n2o_kg_per_passenger_km": 0.000001
+          }
+        },
+        "calculated": {
+          "fossilEmissions": { "co2_t": 2.333, "ch4_t": 0.00012, "n2o_t": 0.00012 },
+          "biofuelEmissions": { "co2_t": 0.16399, "ch4_t": 0.00002, "n2o_t": 0.00000 },
+          "totalFossilCO2e_t": 0.00233,
+          "totalBiofuelCO2e_t": 0.00000,
+          "totalCO2e_t": 0.002,
+          "biogenicCO2e_t": 0.00016
+        }
+      }
+    ]
+  },
+  "carTravel": {
+    "instructions": [
+      "Automóveis não controlados ou de propriedade da organização inventariante.",
+      "Escolha UMA das três opções. Não preencha a mesma fonte em mais de uma opção.",
+      "Opção 1 (tipo + ano) > Opção 2 (combustível) > Opção 3 (distância) em precisão."
+    ],
+    "option1_byFleetType": {
+      "description": "Cálculo por tipo e ano de fabricação da frota",
+      "trips": [
+        {
+          "sourceId": "GMA-001",
+          "description": "Gerente de Meio Ambiente 1",
+          "vehicleType": "Automóvel flex a gasolina",
+          "fleetYear": 2012,
+          "reportingMode": "monthly",
+          "monthlyConsumption": {
+            "jan": 1000, "feb": 900, "mar": 800, "apr": 500,
+            "may": 1200, "jun": 90, "jul": 0, "aug": 300,
+            "sep": 200, "oct": 1100, "nov": 1000, "dec": 100
+          },
+          "annualConsumption": null,
+          "unit": "litros",
+          "fossilFuel": "Gasolina Automotiva (pura)",
+          "biofuel": "Etanol Anidro",
+          "calculated": {
+            "monthlyFossilQuantity": [730, 657, 584, 365, 876, 66, 0, 219, 146, 803, 730, 73],
+            "monthlyBiofuelQuantity": [270, 243, 216, 135, 324, 24, 0, 81, 54, 297, 270, 27],
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": 2.212, "ch4_kg_per_liter": 0.0002, "n2o_kg_per_liter": 0.00023 },
+              "biofuel": { "co2_kg_per_liter": 1.526, "ch4_kg_per_liter": 0.0002, "n2o_kg_per_liter": 0.00023 }
+            },
+            "totalCO2e_t": 12.14,
+            "biogenicCO2_t": 8.01
+          }
+        }
+      ]
+    },
+    "option2_byFuelType": {
+      "description": "Cálculo por tipo de combustível",
+      "trips": [
+        {
+          "sourceId": "GCOM-001",
+          "description": "Gerente Comercial",
+          "fuelType": "Óleo Diesel (comercial)",
+          "reportingMode": "monthly",
+          "monthlyConsumption": {
+            "jan": 1000, "feb": 900, "mar": 800, "apr": 500,
+            "may": 1200, "jun": 90, "jul": 10, "aug": 300,
+            "sep": 200, "oct": 1100, "nov": 1000, "dec": 100
+          },
+          "annualConsumption": null,
+          "unit": "litros",
+          "fossilFuel": "Óleo Diesel (puro)",
+          "biofuel": "Biodiesel (B100)",
+          "calculated": {
+            "monthlyFossilQuantity": [930, 837, 744, 465, 1116, 84, 9, 279, 186, 1023, 930, 93],
+            "monthlyBiofuelQuantity": [70, 63, 56, 35, 84, 6, 1, 21, 14, 77, 70, 7],
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": 2.603, "ch4_kg_per_liter": 0.0001, "n2o_kg_per_liter": 0.00014 },
+              "biofuel": { "co2_kg_per_liter": 2.431, "ch4_kg_per_liter": 0.0003, "n2o_kg_per_liter": 0.00002 }
+            },
+            "totalCO2e_t": 17.74,
+            "biogenicCO2_t": 1.23
+          }
+        }
+      ]
+    },
+    "option3_byDistance": {
+      "description": "Cálculo por distância percorrida",
+      "trips": [
+        {
+          "fleetId": "GMA-002",
+          "description": "Gerente de Meio Ambiente 2",
+          "vehicleType": "Motocicleta flex a etanol",
+          "fleetYear": 2014,
+          "reportingMode": "monthly",
+          "monthlyDistance_km": {
+            "jan": 10000, "feb": 9500, "mar": 12000, "apr": 50000,
+            "may": 20000, "jun": 30000, "jul": 24000, "aug": 300,
+            "sep": 2500, "oct": 28000, "nov": 1000, "dec": 4000
+          },
+          "annualDistance_km": null,
+          "averageConsumption": 29.3,
+          "consumptionUnit": "km/litro",
+          "unit": "litros",
+          "fossilFuel": null,
+          "biofuel": "Etanol Hidratado",
+          "calculated": {
+            "monthlyFossilQuantity": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "monthlyBiofuelQuantity": [341, 324, 410, 1706, 683, 1024, 819, 10, 85, 956, 34, 137],
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": null, "ch4_kg_per_liter": null, "n2o_kg_per_liter": null },
+              "biofuel": { "co2_kg_per_liter": 1.457, "ch4_kg_per_liter": 0.0006, "n2o_kg_per_liter": 0.00006 }
+            },
+            "totalCO2e_t": 0.21,
+            "biogenicCO2_t": 9.51
+          }
+        }
+      ]
+    }
+  },
+  "ferryTravel": {
+    "description": "Viagens em balsas",
+    "instructions": [
+      "Distância por trecho = somente ida. Para ida e volta, multiplique por 2.",
+      "Número de passageiros permite agrupar funcionários com mesma distância."
+    ],
+    "trips": [
+      {
+        "collaboratorId": "Colaborador 1",
+        "description": "",
+        "ferryType": "Balsa de passageiros",
+        "passengers": 1,
+        "segmentDistance_km": 10.0,
+        "emissionFactors": {
+          "co2_kg_per_passenger_km": 0.084,
+          "ch4_kg_per_passenger_km": 0.000004,
+          "n2o_kg_per_passenger_km": 0.000004
+        },
+        "calculated": {
+          "co2_t": 178.854,
+          "ch4_t": 0.00952,
+          "n2o_t": 0.00952,
+          "totalCO2e_t": 0.182
+        }
+      }
+    ]
+  },
+  "totals": {
+    "totalCO2e_t": 0.0,
+    "totalBiogenicCO2_t": 0.0
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "metadata": {
+    "section": "Emissões Casa — Trabalho",
+    "inventoryYear": 2025,
+    "scope": "Escopo 3 — Categoria 7 (Deslocamento casa-trabalho dos funcionários)",
+    "description": "Emissões do transporte de funcionários no deslocamento entre casa e trabalho (veículos particulares, transporte público) e emissões do trabalho remoto (home-office)",
+    "instructions": [
+      "Inclui funcionários de entidades operadas, alugadas ou de propriedade da organização, além de prestadores terceirizados e consultores.",
+      "Preencha apenas os campos de entrada (input) da ferramenta.",
+      "Distância por trecho = somente ida. Para ida e volta, multiplique por 2.",
+      "Dias trabalhados: GHG Protocol sugere 230 dias úteis/ano (média de 20 dias/mês)."
+    ]
+  },
+  "gwp": {
+    "CO2": 1,
+    "CH4": 27.2,
+    "N2O": 273
+  },
+  "publicTransport": {
+    "metroRail": {
+      "description": "Metrô e trem urbano (modal metroferroviário)",
+      "instructions": [
+        "Inclui trens, metrô e outros veículos sobre trilhos.",
+        "Distância por trecho = somente ida. Para ida e volta, multiplique por 2."
+      ],
+      "routes": [
+        {
+          "collaboratorId": "Colaborador 1",
+          "description": "Estação Flora p/ Estação Outono",
+          "transportType": "Trem urbano",
+          "passengers": 20,
+          "segmentDistance_km": 20.0,
+          "workDaysPerYear": 230,
+          "emissionFactors": {
+            "co2_g_per_passenger_km": 11.77,
+            "ch4_g_per_passenger_km": null,
+            "n2o_g_per_passenger_km": null
+          },
+          "calculated": {
+            "co2_t": 0.0812,
+            "ch4_t": null,
+            "n2o_t": null,
+            "totalCO2e_t": 0.08
+          }
+        }
+      ]
+    },
+    "bus": {
+      "description": "Ônibus municipal e de viagem",
+      "instructions": [
+        "Ônibus não controlados ou de propriedade da organização.",
+        "Ônibus de viagem = trechos entre rodoviárias. Ônibus municipal = trechos urbanos.",
+        "Distância por trecho = somente ida. Para ida e volta, multiplique por 2."
+      ],
+      "routes": [
+        {
+          "collaboratorId": "Colaborador 1",
+          "description": "Ponto Av Brasil p/ ponto Av México",
+          "busType": "Ônibus municipal",
+          "passengers": 1,
+          "segmentDistance_km": 10.0,
+          "workDaysPerYear": 230,
+          "emissionFactors": {
+            "fossil": {
+              "co2_kg_per_passenger_km": 0.084,
+              "ch4_kg_per_passenger_km": 0.000004,
+              "n2o_kg_per_passenger_km": 0.000004
+            },
+            "biofuel": {
+              "co2_kg_per_passenger_km": 0.078,
+              "ch4_kg_per_passenger_km": 0.00001,
+              "n2o_kg_per_passenger_km": 0.000001
+            }
+          },
+          "calculated": {
+            "fossilEmissions": { "co2_t": 178.854, "ch4_t": 0.00952, "n2o_t": 0.00952 },
+            "biofuelEmissions": { "co2_t": 12.57261, "ch4_t": 0.00171, "n2o_t": 0.0001 },
+            "totalFossilCO2e_t": 0.17885,
+            "totalBiofuelCO2e_t": 0.00001,
+            "totalCO2e_t": 0.182,
+            "biogenicCO2e_t": 0.01257
+          }
+        }
+      ]
+    },
+    "ferry": {
+      "description": "Balsas",
+      "instructions": [
+        "Balsas não controladas ou de propriedade da organização.",
+        "Balsa de passageiros = transporta somente pessoas.",
+        "Distância por trecho = somente ida. Para ida e volta, multiplique por 2."
+      ],
+      "routes": [
+        {
+          "collaboratorId": "Colaborador 1",
+          "description": "",
+          "ferryType": "Balsa de passageiros",
+          "passengers": 1,
+          "segmentDistance_km": 10.0,
+          "workDaysPerYear": 230,
+          "emissionFactors": {
+            "co2_kg_per_passenger_km": 0.084,
+            "ch4_kg_per_passenger_km": 0.000004,
+            "n2o_kg_per_passenger_km": 0.000004
+          },
+          "calculated": {
+            "co2_t": 178.854,
+            "ch4_t": 0.00952,
+            "n2o_t": 0.00952,
+            "totalCO2e_t": 0.182
+          }
+        }
+      ]
+    }
+  },
+  "privateVehicles": {
+    "instructions": [
+      "Automóveis particulares dos colaboradores (não controlados pela organização).",
+      "Escolha UMA das três opções. Não preencha a mesma fonte em mais de uma opção.",
+      "Opção 1 (tipo + ano) > Opção 2 (combustível) > Opção 3 (distância) em precisão.",
+      "Consumo médio de combustível por dia = considerar ida + volta."
+    ],
+    "option1_byFleetType": {
+      "description": "Cálculo por tipo e ano de fabricação da frota + consumo médio",
+      "routes": [
+        {
+          "collaboratorId": "Colaborador 1",
+          "description": "Sede empresa ao centro",
+          "vehicleType": "Automóvel flex a gasolina",
+          "fleetYear": 2012,
+          "dailyFuelConsumption": 10,
+          "fuelUnit": "litros",
+          "workDaysPerYear": 230,
+          "fossilFuel": "Gasolina Automotiva (pura)",
+          "biofuel": "Etanol Anidro",
+          "calculated": {
+            "annualFossilQuantity": 1679,
+            "annualBiofuelQuantity": 649.75,
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": 2.212, "ch4_kg_per_liter": 0.0002, "n2o_kg_per_liter": 0.00023 },
+              "biofuel": { "co2_kg_per_liter": 1.526, "ch4_kg_per_liter": 0.0002, "n2o_kg_per_liter": 0.00023 }
+            },
+            "totalCO2e_t": 3.88,
+            "biogenicCO2_t": 0.95
+          }
+        }
+      ]
+    },
+    "option2_byFuelType": {
+      "description": "Cálculo por tipo de combustível + consumo médio",
+      "routes": [
+        {
+          "collaboratorId": "Colaborador 1",
+          "description": "Empresa ao bairro residencial Sabiá",
+          "fuelType": "Óleo Diesel (comercial)",
+          "dailyFuelConsumption": 10,
+          "fuelUnit": "litros",
+          "workDaysPerYear": 230,
+          "fossilFuel": null,
+          "biofuel": "Biodiesel (B100)",
+          "calculated": {
+            "monthlyFossilQuantity": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "monthlyBiofuelQuantity": [1000, 900, 800, 500, 1200, 90, 10, 300, 200, 1100, 1000, 100],
+            "annualBiofuelQuantity": 7200,
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": null, "ch4_kg_per_liter": null, "n2o_kg_per_liter": null },
+              "biofuel": { "co2_kg_per_liter": 2.431, "ch4_kg_per_liter": 0.0003, "n2o_kg_per_liter": 0.00002 }
+            },
+            "totalCO2e_t": 0.1,
+            "biogenicCO2_t": 17.5
+          }
+        }
+      ]
+    },
+    "option3_byDistance": {
+      "description": "Cálculo por distância média percorrida + consumo médio",
+      "routes": [
+        {
+          "collaboratorId": "Colaborador 1",
+          "description": "Empresa ao bairro residencial Flora",
+          "vehicleType": "Motocicleta flex a etanol",
+          "fleetYear": 2011,
+          "dailyDistance_km": 20,
+          "averageConsumption": 28.01,
+          "consumptionUnit": "km/litro",
+          "workDaysPerYear": 230,
+          "fossilFuel": "Gasolina Automotiva (pura)",
+          "biofuel": "Etanol Anidro",
+          "calculated": {
+            "monthlyTotalConsumption": [357, 339, 428, 1785, 714, 1071, 857, 11, 89, 1000, 36, 143],
+            "monthlyFossilQuantity": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "monthlyBiofuelQuantity": [357, 339, 428, 1785, 714, 1071, 857, 11, 89, 1000, 36, 143],
+            "annualFossilQuantity": 0,
+            "annualBiofuelQuantity": 6830,
+            "emissionFactors": {
+              "fossil": { "co2_kg_per_liter": 2.212, "ch4_kg_per_liter": 0.0006, "n2o_kg_per_liter": 0.00006 },
+              "biofuel": { "co2_kg_per_liter": 1.457, "ch4_kg_per_liter": 0.0006, "n2o_kg_per_liter": 0.00006 }
+            },
+            "totalCO2e_t": 0.21,
+            "biogenicCO2_t": 9.95
+          }
+        }
+      ]
+    }
+  },
+  "remoteWork": {
+    "description": "Emissões de trabalho remoto (home-office)",
+    "instructions": [
+      "Funcionários em espaços não controlados e/ou de propriedade da organização.",
+      "Inclua o número de colaboradores e o número médio de dias/semana em regime remoto.",
+      "Assumido 230 dias úteis/ano (média de 20 dias/mês).",
+      "O cálculo considera apenas consumo de eletricidade da estação de trabalho (laptop/PC, monitor, telefone, impressora, lâmpadas)."
+    ],
+    "entries": [],
+    "totals": {
+      "totalElectricityConsumption_MWh": 0.0,
+      "totalCO2_t": 0.0,
+      "totalCH4_t": 0.0,
+      "totalN2O_t": 0.0
+    }
+  },
+  "totals": {
+    "totalCO2e_t": 0.0,
+    "totalBiogenicCO2_t": 0.0
+  }
+}
