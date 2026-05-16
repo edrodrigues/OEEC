@@ -122,7 +122,7 @@ export default function OnboardingPage() {
         updatedAt: serverTimestamp(),
       });
 
-      router.push("/dashboard");
+      router.push("/");
     } catch {
       setError("Erro ao criar organização. Tente novamente.");
     } finally {

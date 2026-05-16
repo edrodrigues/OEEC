@@ -16,15 +16,15 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Organização", href: "/dashboard/organization", icon: Building2 },
-  { name: "Inventário Energético", href: "/dashboard/inventory", icon: FileText },
-  { name: "Inventário Carbono", href: "/dashboard/carbon", icon: Cloud },
-  { name: "ESG", href: "/dashboard/esg", icon: Leaf },
-  { name: "Ranking Nacional", href: "/dashboard/ranking", icon: Trophy },
-  { name: "Mapa Inteligente", href: "/dashboard/map", icon: Map },
-  { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
-  { name: "Configurações", href: "/dashboard/settings", icon: Settings },
+  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Organização", href: "/organization", icon: Building2 },
+  { name: "Inventário Energético", href: "/inventory", icon: FileText },
+  { name: "Inventário Carbono", href: "/carbon", icon: Cloud },
+  { name: "ESG", href: "/esg", icon: Leaf },
+  { name: "Ranking Nacional", href: "/ranking", icon: Trophy },
+  { name: "Mapa Inteligente", href: "/map", icon: Map },
+  { name: "Relatórios", href: "/reports", icon: BarChart3 },
+  { name: "Configurações", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {

@@ -24,7 +24,7 @@ export default function RegisterPage() {
 
     try {
       await signUp(email, password, name);
-      router.push("/dashboard/onboarding");
+      router.push("/onboarding");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Erro ao criar conta.";
@@ -40,7 +40,7 @@ export default function RegisterPage() {
 
     try {
       await signInWithGoogle();
-      router.push("/dashboard/onboarding");
+      router.push("/onboarding");
     } catch {
       setError("Erro ao criar conta com Google.");
     } finally {

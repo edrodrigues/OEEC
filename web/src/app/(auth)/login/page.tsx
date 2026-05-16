@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Erro ao fazer login. Verifique suas credenciais.";
@@ -39,7 +39,7 @@ export default function LoginPage() {
 
     try {
       await signInWithGoogle();
-      router.push("/dashboard");
+      router.push("/");
     } catch {
       setError("Erro ao fazer login com Google.");
     } finally {
