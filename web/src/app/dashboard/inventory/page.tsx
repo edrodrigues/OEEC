@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   getInventories,
@@ -38,6 +38,7 @@ import { ElectricityMarketStep } from "@/components/inventory/wizard/steps/Elect
 import { BusinessTravelStep } from "@/components/inventory/wizard/steps/BusinessTravelStep";
 import { CommuteStep } from "@/components/inventory/wizard/steps/CommuteStep";
 import { ReviewStep } from "@/components/inventory/wizard/steps/ReviewStep";
+import { ToastContainer, type Toast } from "@/components/inventory/wizard/shared/Toast";
 import { FileText, Flame, Car, Zap, ShoppingCart, Plane, Home, BarChart3, Plus, Loader2 } from "lucide-react";
 import type { InventoryTotals } from "@/lib/data/inventory-types";
 
@@ -53,6 +54,10 @@ const WIZARD_STEPS: WizardStep[] = [
 ];
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+function genId() {
+  return `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
 
 export default function InventoryPage() {
   const { user } = useAuth();
@@ -76,8 +81,20 @@ export default function InventoryPage() {
   const [commuteRecords, setCommuteRecords] = useState<any[]>([]);
   const [remoteWorkRecords, setRemoteWorkRecords] = useState<any[]>([]);
 
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [newRecordIds, setNewRecordIds] = useState<Set<string>>(new Set());
+
+  const introSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pendingIntroChangesRef = useRef<Partial<Inventory> | null>(null);
+
+  const addToast = useCallback((type: Toast["type"], message: string) => {
+    const id = genId();
+    setToasts((prev) => [...prev, { id, type, message }]);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   useEffect(() => {
     if (!user?.organizationId) return;
@@ -96,8 +113,8 @@ export default function InventoryPage() {
     const changes = pendingIntroChangesRef.current;
     if (!changes) return;
 
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(async () => {
+    if (introSaveTimerRef.current) clearTimeout(introSaveTimerRef.current);
+    introSaveTimerRef.current = setTimeout(async () => {
       try {
         setSaveStatus("saving");
         await updateInventory(selectedInventory.id, changes);
@@ -107,14 +124,15 @@ export default function InventoryPage() {
         setTimeout(() => setSaveStatus("idle"), 2000);
       } catch {
         setSaveStatus("error");
+        addToast("error", "Erro ao salvar dados do inventário.");
         setTimeout(() => setSaveStatus("idle"), 3000);
       }
     }, 3000);
 
     return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (introSaveTimerRef.current) clearTimeout(introSaveTimerRef.current);
     };
-  }, [selectedInventory, currentStep, stationaryRecords.length, mobileRecords.length, electricityLocationRecords.length, electricityMarketRecords.length, businessTravelRecords.length, commuteRecords.length, remoteWorkRecords.length]);
+  }, [selectedInventory, currentStep]);
 
   async function loadInventories() {
     setLoading(true);
@@ -126,7 +144,7 @@ export default function InventoryPage() {
         setSelectedId(invs[0].id);
       }
     } catch {
-      setSaveStatus("error");
+      addToast("error", "Erro ao carregar inventários.");
     } finally {
       setLoading(false);
     }
@@ -151,7 +169,7 @@ export default function InventoryPage() {
       setCommuteRecords(commute);
       setRemoteWorkRecords(remote);
     } catch {
-      setSaveStatus("error");
+      addToast("error", "Erro ao carregar registros.");
     }
   }
 
@@ -202,8 +220,9 @@ export default function InventoryPage() {
       setCurrentStep("intro");
       setCompletedSteps([]);
       setShowNewInventory(false);
+      addToast("success", "Inventário criado com sucesso.");
     } catch {
-      setSaveStatus("error");
+      addToast("error", "Erro ao criar inventário.");
     } finally {
       setCreating(false);
     }
@@ -215,135 +234,207 @@ export default function InventoryPage() {
     setSelectedInventory((prev) => prev ? { ...prev, ...data } : null);
   }
 
-  async function withSaveStatus(fn: () => Promise<void>) {
+  function markAsNew(id: string) {
+    setNewRecordIds((prev) => new Set(prev).add(id));
+    setTimeout(() => {
+      setNewRecordIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }, 3000);
+  }
+
+  async function optimisticAdd<T extends { id?: string }>(
+    record: T,
+    collection: any[],
+    setCollection: React.Dispatch<React.SetStateAction<any[]>>,
+    createFn: (data: T) => Promise<string>,
+    successMsg: string,
+    inventoryId: string
+  ) {
+    const tempId = genId();
+    const recordWithTempId = { ...record, id: tempId } as any;
+
+    setCollection((prev) => [...prev, recordWithTempId]);
+    markAsNew(tempId);
+
     try {
       setSaveStatus("saving");
-      await fn();
+      const realId = await createFn(record);
+      setCollection((prev) =>
+        prev.map((r) => (r.id === tempId ? { ...r, id: realId } : r))
+      );
       setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 2000);
+      setTimeout(() => setSaveStatus("idle"), 1500);
+      addToast("success", successMsg);
     } catch {
+      setCollection((prev) => prev.filter((r) => r.id !== tempId));
       setSaveStatus("error");
+      addToast("error", "Erro ao salvar registro.");
       setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+  }
+
+  async function handleDelete(
+    id: string,
+    collection: any[],
+    setCollection: React.Dispatch<React.SetStateAction<any[]>>,
+    deleteFn: (id: string) => Promise<void>,
+    inventoryId: string,
+    reloadFn: () => Promise<void>
+  ) {
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+
+    setCollection((prev) => prev.filter((r) => r.id !== id));
+
+    try {
+      await deleteFn(id);
+      addToast("success", "Registro excluído.");
+    } catch {
+      await reloadFn();
+      addToast("error", "Erro ao excluir registro.");
     }
   }
 
   async function handleAddStationary(record: any) {
     if (!selectedInventory) return;
-    await withSaveStatus(async () => {
-      await createStationaryCombustion({ ...record, inventoryId: selectedInventory.id });
-      await loadAllRecords(selectedInventory.id);
-    });
+    await optimisticAdd(
+      record, stationaryRecords, setStationaryRecords,
+      (r) => createStationaryCombustion({ ...r, inventoryId: selectedInventory.id }),
+      "Registro de combustão estacionária adicionado.",
+      selectedInventory.id
+    );
   }
 
   async function handleDeleteStationary(id: string) {
     if (!selectedInventory) return;
-    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
-    await withSaveStatus(async () => {
-      await deleteStationaryCombustion(id);
-      await loadAllRecords(selectedInventory.id);
-    });
+    await handleDelete(
+      id, stationaryRecords, setStationaryRecords,
+      deleteStationaryCombustion,
+      selectedInventory.id,
+      () => loadAllRecords(selectedInventory.id)
+    );
   }
 
   async function handleAddMobile(record: any) {
     if (!selectedInventory) return;
-    await withSaveStatus(async () => {
-      await createMobileCombustion({ ...record, inventoryId: selectedInventory.id });
-      await loadAllRecords(selectedInventory.id);
-    });
+    await optimisticAdd(
+      record, mobileRecords, setMobileRecords,
+      (r) => createMobileCombustion({ ...r, inventoryId: selectedInventory.id }),
+      "Registro de combustão móvel adicionado.",
+      selectedInventory.id
+    );
   }
 
   async function handleDeleteMobile(id: string) {
     if (!selectedInventory) return;
-    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
-    await withSaveStatus(async () => {
-      await deleteMobileCombustion(id);
-      await loadAllRecords(selectedInventory.id);
-    });
+    await handleDelete(
+      id, mobileRecords, setMobileRecords,
+      deleteMobileCombustion,
+      selectedInventory.id,
+      () => loadAllRecords(selectedInventory.id)
+    );
   }
 
   async function handleAddElectricityLocation(record: any) {
     if (!selectedInventory) return;
-    await withSaveStatus(async () => {
-      await createElectricityConsumption({ ...record, inventoryId: selectedInventory.id });
-      await loadAllRecords(selectedInventory.id);
-    });
+    await optimisticAdd(
+      record, electricityLocationRecords, setElectricityLocationRecords,
+      (r) => createElectricityConsumption({ ...r, inventoryId: selectedInventory.id }),
+      "Registro de energia elétrica adicionado.",
+      selectedInventory.id
+    );
   }
 
   async function handleDeleteElectricityLocation(id: string) {
     if (!selectedInventory) return;
-    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
-    await withSaveStatus(async () => {
-      await deleteElectricityConsumption(id);
-      await loadAllRecords(selectedInventory.id);
-    });
+    await handleDelete(
+      id, electricityLocationRecords, setElectricityLocationRecords,
+      deleteElectricityConsumption,
+      selectedInventory.id,
+      () => loadAllRecords(selectedInventory.id)
+    );
   }
 
   async function handleAddElectricityMarket(record: any) {
     if (!selectedInventory) return;
-    await withSaveStatus(async () => {
-      await createMarketBasedEnergy({ ...record, inventoryId: selectedInventory.id });
-      await loadAllRecords(selectedInventory.id);
-    });
+    await optimisticAdd(
+      record, electricityMarketRecords, setElectricityMarketRecords,
+      (r) => createMarketBasedEnergy({ ...r, inventoryId: selectedInventory.id }),
+      "Registro de energia (market-based) adicionado.",
+      selectedInventory.id
+    );
   }
 
   async function handleDeleteElectricityMarket(id: string) {
     if (!selectedInventory) return;
-    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
-    await withSaveStatus(async () => {
-      await deleteMarketBasedEnergy(id);
-      await loadAllRecords(selectedInventory.id);
-    });
+    await handleDelete(
+      id, electricityMarketRecords, setElectricityMarketRecords,
+      deleteMarketBasedEnergy,
+      selectedInventory.id,
+      () => loadAllRecords(selectedInventory.id)
+    );
   }
 
   async function handleAddBusinessTravel(record: any) {
     if (!selectedInventory) return;
-    await withSaveStatus(async () => {
-      await createBusinessTravel({ ...record, inventoryId: selectedInventory.id });
-      await loadAllRecords(selectedInventory.id);
-    });
+    await optimisticAdd(
+      record, businessTravelRecords, setBusinessTravelRecords,
+      (r) => createBusinessTravel({ ...r, inventoryId: selectedInventory.id }),
+      "Registro de viagem a negócio adicionado.",
+      selectedInventory.id
+    );
   }
 
   async function handleDeleteBusinessTravel(id: string) {
     if (!selectedInventory) return;
-    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
-    await withSaveStatus(async () => {
-      await deleteBusinessTravel(id);
-      await loadAllRecords(selectedInventory.id);
-    });
+    await handleDelete(
+      id, businessTravelRecords, setBusinessTravelRecords,
+      deleteBusinessTravel,
+      selectedInventory.id,
+      () => loadAllRecords(selectedInventory.id)
+    );
   }
 
   async function handleAddCommute(record: any) {
     if (!selectedInventory) return;
-    await withSaveStatus(async () => {
-      await createCommute({ ...record, inventoryId: selectedInventory.id });
-      await loadAllRecords(selectedInventory.id);
-    });
+    await optimisticAdd(
+      record, commuteRecords, setCommuteRecords,
+      (r) => createCommute({ ...r, inventoryId: selectedInventory.id }),
+      "Registro de deslocamento adicionado.",
+      selectedInventory.id
+    );
   }
 
   async function handleDeleteCommute(id: string) {
     if (!selectedInventory) return;
-    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
-    await withSaveStatus(async () => {
-      await deleteCommute(id);
-      await loadAllRecords(selectedInventory.id);
-    });
+    await handleDelete(
+      id, commuteRecords, setCommuteRecords,
+      deleteCommute,
+      selectedInventory.id,
+      () => loadAllRecords(selectedInventory.id)
+    );
   }
 
   async function handleAddRemoteWork(record: any) {
     if (!selectedInventory) return;
-    await withSaveStatus(async () => {
-      await createRemoteWork({ ...record, inventoryId: selectedInventory.id });
-      await loadAllRecords(selectedInventory.id);
-    });
+    await optimisticAdd(
+      record, remoteWorkRecords, setRemoteWorkRecords,
+      (r) => createRemoteWork({ ...r, inventoryId: selectedInventory.id }),
+      "Registro de trabalho remoto adicionado.",
+      selectedInventory.id
+    );
   }
 
   async function handleDeleteRemoteWork(id: string) {
     if (!selectedInventory) return;
-    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
-    await withSaveStatus(async () => {
-      await deleteRemoteWork(id);
-      await loadAllRecords(selectedInventory.id);
-    });
+    await handleDelete(
+      id, remoteWorkRecords, setRemoteWorkRecords,
+      deleteRemoteWork,
+      selectedInventory.id,
+      () => loadAllRecords(selectedInventory.id)
+    );
   }
 
   const currentIndex = WIZARD_STEPS.findIndex((s) => s.id === currentStep);
@@ -426,6 +517,8 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
       {!selectedInventory && (
         <div className="rounded-xl border border-[#d1c5ae]/20 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-[#1b1c1c]">Selecione ou crie um inventário</h2>
@@ -502,6 +595,7 @@ export default function InventoryPage() {
             {currentStep === "stationary" && (
               <StationaryCombustionStep
                 records={stationaryRecords}
+                newRecordIds={newRecordIds}
                 onAdd={handleAddStationary}
                 onDelete={handleDeleteStationary}
               />
@@ -510,6 +604,7 @@ export default function InventoryPage() {
             {currentStep === "mobile" && (
               <MobileCombustionStep
                 records={mobileRecords}
+                newRecordIds={newRecordIds}
                 onAdd={handleAddMobile}
                 onDelete={handleDeleteMobile}
               />
@@ -518,6 +613,7 @@ export default function InventoryPage() {
             {currentStep === "electricity-location" && (
               <ElectricityLocationStep
                 records={electricityLocationRecords}
+                newRecordIds={newRecordIds}
                 onAdd={handleAddElectricityLocation}
                 onDelete={handleDeleteElectricityLocation}
               />
@@ -526,6 +622,7 @@ export default function InventoryPage() {
             {currentStep === "electricity-market" && (
               <ElectricityMarketStep
                 records={electricityMarketRecords}
+                newRecordIds={newRecordIds}
                 onAdd={handleAddElectricityMarket}
                 onDelete={handleDeleteElectricityMarket}
               />
@@ -534,6 +631,7 @@ export default function InventoryPage() {
             {currentStep === "business-travel" && (
               <BusinessTravelStep
                 records={businessTravelRecords}
+                newRecordIds={newRecordIds}
                 onAdd={handleAddBusinessTravel}
                 onDelete={handleDeleteBusinessTravel}
               />
@@ -543,6 +641,7 @@ export default function InventoryPage() {
               <CommuteStep
                 commuteRecords={commuteRecords}
                 remoteWorkRecords={remoteWorkRecords}
+                newRecordIds={newRecordIds}
                 onAddCommute={handleAddCommute}
                 onAddRemoteWork={handleAddRemoteWork}
                 onDeleteCommute={handleDeleteCommute}

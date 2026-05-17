@@ -10,12 +10,6 @@ import { StepCard } from "../shared/StepCard";
 import { MonthlyGrid } from "../shared/MonthlyGrid";
 import type { MobileCombustionRecord, MonthlyData } from "@/lib/data/inventory-types";
 
-interface MobileCombustionStepProps {
-  records: MobileCombustionRecord[];
-  onAdd: (record: Omit<MobileCombustionRecord, "id" | "createdAt" | "updatedAt">) => void;
-  onDelete: (id: string) => void;
-}
-
 const MODALS = [
   { id: "road", label: "Rodoviário", icon: "🚗" },
   { id: "rail", label: "Ferroviário", icon: "🚂" },
@@ -23,14 +17,21 @@ const MODALS = [
   { id: "air", label: "Aéreo", icon: "✈️" },
 ];
 
-const VEHICLE_TYPES = {
+const VEHICLE_TYPES: Record<string, string[]> = {
   road: ["Automóvel flex a gasolina", "Automóvel flex a etanol", "Motocicleta flex a etanol", "Caminhão diesel", "Ônibus diesel", "Van diesel"],
   rail: ["Locomotiva diesel", "Locomotiva elétrica"],
   waterway: ["Barcaça diesel", "Navio óleo combustível", "Lancha gasolina"],
   air: ["Avião comercial querosene", "Helicóptero querosene", "Avião particular gasolina"],
 };
 
-export function MobileCombustionStep({ records, onAdd, onDelete }: MobileCombustionStepProps) {
+interface MobileCombustionStepProps {
+  records: MobileCombustionRecord[];
+  newRecordIds: Set<string>;
+  onAdd: (record: Omit<MobileCombustionRecord, "id" | "createdAt" | "updatedAt">) => void;
+  onDelete: (id: string) => void;
+}
+
+export function MobileCombustionStep({ records, newRecordIds, onAdd, onDelete }: MobileCombustionStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [form, setForm] = useState({
@@ -293,6 +294,7 @@ export function MobileCombustionStep({ records, onAdd, onDelete }: MobileCombust
                 title={r.description}
                 subtitle={`${r.fleetId} · ${r.modal} · ${r.calculationMethod}`}
                 value={r.totalCO2e.toFixed(3)}
+                isNew={newRecordIds.has(r.id)}
                 badge={r.biogenicCO2 > 0 ? { label: "Biogênico", color: "bg-green-50 text-green-700" } : undefined}
                 onDelete={() => onDelete(r.id)}
               />

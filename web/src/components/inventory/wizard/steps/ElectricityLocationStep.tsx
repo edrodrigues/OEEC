@@ -11,11 +11,12 @@ import type { ElectricityLocationRecord, MonthlyData } from "@/lib/data/inventor
 
 interface ElectricityLocationStepProps {
   records: ElectricityLocationRecord[];
+  newRecordIds: Set<string>;
   onAdd: (record: Omit<ElectricityLocationRecord, "id" | "createdAt" | "updatedAt">) => void;
   onDelete: (id: string) => void;
 }
 
-export function ElectricityLocationStep({ records, onAdd, onDelete }: ElectricityLocationStepProps) {
+export function ElectricityLocationStep({ records, newRecordIds, onAdd, onDelete }: ElectricityLocationStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [sourceType, setSourceType] = useState<"sin" | "electricVehicle" | "isolatedSystem">("sin");
   const [form, setForm] = useState({
@@ -158,6 +159,7 @@ export function ElectricityLocationStep({ records, onAdd, onDelete }: Electricit
                 title={r.description}
                 subtitle={`${r.sourceId} · ${r.sourceType === "sin" ? "SIN" : r.sourceType === "electricVehicle" ? "Veículo Elétrico" : "Sistema Isolado"}`}
                 value={r.totalCO2e.toFixed(3)}
+                isNew={newRecordIds.has(r.id)}
                 onDelete={() => onDelete(r.id)}
               />
             ))}

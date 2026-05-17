@@ -11,11 +11,12 @@ import type { StationaryCombustionRecord } from "@/lib/data/inventory-types";
 
 interface StationaryCombustionStepProps {
   records: StationaryCombustionRecord[];
+  newRecordIds: Set<string>;
   onAdd: (record: Omit<StationaryCombustionRecord, "id" | "createdAt" | "updatedAt">) => void;
   onDelete: (id: string) => void;
 }
 
-export function StationaryCombustionStep({ records, onAdd, onDelete }: StationaryCombustionStepProps) {
+export function StationaryCombustionStep({ records, newRecordIds, onAdd, onDelete }: StationaryCombustionStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     registryId: "",
@@ -184,6 +185,7 @@ export function StationaryCombustionStep({ records, onAdd, onDelete }: Stationar
                 title={r.description || r.fuel}
                 subtitle={`${r.registryId} · ${r.quantity} ${r.unit} · ${r.fuel}`}
                 value={r.totalCO2e.toFixed(3)}
+                isNew={newRecordIds.has(r.id)}
                 badge={r.biogenicCO2 > 0 ? { label: "Biogênico", color: "bg-green-50 text-green-700" } : undefined}
                 onDelete={() => onDelete(r.id)}
               />

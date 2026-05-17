@@ -8,12 +8,6 @@ import { EmissionPreview } from "../shared/EmissionPreview";
 import { StepCard } from "../shared/StepCard";
 import type { BusinessTravelRecord } from "@/lib/data/inventory-types";
 
-interface BusinessTravelStepProps {
-  records: BusinessTravelRecord[];
-  onAdd: (record: Omit<BusinessTravelRecord, "id" | "createdAt" | "updatedAt">) => void;
-  onDelete: (id: string) => void;
-}
-
 const TRAVEL_TYPES = [
   { id: "air", label: "Aérea", icon: "✈️", desc: "Voos comerciais e particulares" },
   { id: "rail", label: "Ferroviário", icon: "🚂", desc: "Trens e metrô" },
@@ -22,7 +16,14 @@ const TRAVEL_TYPES = [
   { id: "ferry", label: "Balsa", icon: "⛴️", desc: "Balsas de passageiros" },
 ];
 
-export function BusinessTravelStep({ records, onAdd, onDelete }: BusinessTravelStepProps) {
+interface BusinessTravelStepProps {
+  records: BusinessTravelRecord[];
+  newRecordIds: Set<string>;
+  onAdd: (record: Omit<BusinessTravelRecord, "id" | "createdAt" | "updatedAt">) => void;
+  onDelete: (id: string) => void;
+}
+
+export function BusinessTravelStep({ records, newRecordIds, onAdd, onDelete }: BusinessTravelStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     tripId: "",
@@ -158,6 +159,7 @@ export function BusinessTravelStep({ records, onAdd, onDelete }: BusinessTravelS
                 title={r.description}
                 subtitle={`${r.tripId} · ${r.travelType} · ${r.totalDistance} km`}
                 value={r.totalCO2e.toFixed(3)}
+                isNew={newRecordIds.has(r.id)}
                 onDelete={() => onDelete(r.id)}
               />
             ))}

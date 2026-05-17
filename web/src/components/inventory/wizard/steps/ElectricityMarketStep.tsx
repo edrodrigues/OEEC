@@ -9,15 +9,16 @@ import { EmissionPreview } from "../shared/EmissionPreview";
 import { StepCard } from "../shared/StepCard";
 import type { ElectricityMarketRecord, MonthlyData } from "@/lib/data/inventory-types";
 
+const GENERATION_TYPES = ["Termoelétrica", "Hidrelétrica", "Eólica", "Solar", "Biomassa", "Nuclear"];
+
 interface ElectricityMarketStepProps {
   records: ElectricityMarketRecord[];
+  newRecordIds: Set<string>;
   onAdd: (record: Omit<ElectricityMarketRecord, "id" | "createdAt" | "updatedAt">) => void;
   onDelete: (id: string) => void;
 }
 
-const GENERATION_TYPES = ["Termoelétrica", "Hidrelétrica", "Eólica", "Solar", "Biomassa", "Nuclear"];
-
-export function ElectricityMarketStep({ records, onAdd, onDelete }: ElectricityMarketStepProps) {
+export function ElectricityMarketStep({ records, newRecordIds, onAdd, onDelete }: ElectricityMarketStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     sourceId: "",
@@ -192,6 +193,7 @@ export function ElectricityMarketStep({ records, onAdd, onDelete }: ElectricityM
                 title={r.description}
                 subtitle={`${r.generationType} · ${r.fuel}`}
                 value={r.totalCO2e.toFixed(3)}
+                isNew={newRecordIds.has(r.id)}
                 badge={isRenewable(r.generationType) ? { label: "Renovável", color: "bg-green-50 text-green-700" } : undefined}
                 onDelete={() => onDelete(r.id)}
               />

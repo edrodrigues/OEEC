@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -7,16 +10,38 @@ interface StepCardProps {
   value: string;
   valueLabel?: string;
   badge?: { label: string; color: string };
+  isNew?: boolean;
   onDelete?: () => void;
   onEdit?: () => void;
   className?: string;
 }
 
-export function StepCard({ title, subtitle, value, valueLabel = "tCO₂e", badge, onDelete, onEdit, className = "" }: StepCardProps) {
+export function StepCard({ title, subtitle, value, valueLabel = "tCO₂e", badge, isNew = false, onDelete, onEdit, className = "" }: StepCardProps) {
+  const [highlight, setHighlight] = useState(isNew);
+
+  useEffect(() => {
+    if (isNew) {
+      setHighlight(true);
+      const timer = setTimeout(() => setHighlight(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [isNew]);
+
   return (
-    <div className={cn("flex items-center justify-between rounded-lg border border-[#d1c5ae]/20 bg-white p-3 shadow-sm", className)}>
+    <div
+      className={cn(
+        "flex items-center justify-between rounded-lg border bg-white p-3 shadow-sm transition-all duration-500",
+        highlight ? "border-[#efc13e] bg-[#fffcf0] shadow-md" : "border-[#d1c5ae]/20",
+        className
+      )}
+    >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-[#1b1c1c]">{title}</p>
+        <div className="flex items-center gap-2">
+          <p className="truncate text-sm font-medium text-[#1b1c1c]">{title}</p>
+          {highlight && (
+            <span className="flex h-2 w-2 rounded-full bg-[#efc13e] animate-pulse" />
+          )}
+        </div>
         {subtitle && <p className="truncate text-xs text-[#807662]">{subtitle}</p>}
         <div className="mt-1 flex items-center gap-2">
           <span className="text-sm font-bold text-[#765b00]">{value}</span>

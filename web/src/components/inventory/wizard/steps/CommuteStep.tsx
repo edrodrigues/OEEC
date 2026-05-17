@@ -8,15 +8,6 @@ import { EmissionPreview } from "../shared/EmissionPreview";
 import { StepCard } from "../shared/StepCard";
 import type { CommuteRecord, RemoteWorkRecord } from "@/lib/data/inventory-types";
 
-interface CommuteStepProps {
-  commuteRecords: CommuteRecord[];
-  remoteWorkRecords: RemoteWorkRecord[];
-  onAddCommute: (record: Omit<CommuteRecord, "id" | "createdAt" | "updatedAt">) => void;
-  onAddRemoteWork: (record: Omit<RemoteWorkRecord, "id" | "createdAt" | "updatedAt">) => void;
-  onDeleteCommute: (id: string) => void;
-  onDeleteRemoteWork: (id: string) => void;
-}
-
 const TRANSPORT_TYPES = [
   { id: "metroRail", label: "Metrô/Trem", icon: "🚇" },
   { id: "bus", label: "Ônibus", icon: "🚌" },
@@ -24,7 +15,17 @@ const TRANSPORT_TYPES = [
   { id: "private", label: "Veículo Particular", icon: "🚗" },
 ];
 
-export function CommuteStep({ commuteRecords, remoteWorkRecords, onAddCommute, onAddRemoteWork, onDeleteCommute, onDeleteRemoteWork }: CommuteStepProps) {
+interface CommuteStepProps {
+  commuteRecords: CommuteRecord[];
+  remoteWorkRecords: RemoteWorkRecord[];
+  newRecordIds: Set<string>;
+  onAddCommute: (record: Omit<CommuteRecord, "id" | "createdAt" | "updatedAt">) => void;
+  onAddRemoteWork: (record: Omit<RemoteWorkRecord, "id" | "createdAt" | "updatedAt">) => void;
+  onDeleteCommute: (id: string) => void;
+  onDeleteRemoteWork: (id: string) => void;
+}
+
+export function CommuteStep({ commuteRecords, remoteWorkRecords, newRecordIds, onAddCommute, onAddRemoteWork, onDeleteCommute, onDeleteRemoteWork }: CommuteStepProps) {
   const [showCommuteForm, setShowCommuteForm] = useState(false);
   const [showRemoteForm, setShowRemoteForm] = useState(false);
   const [commuteForm, setCommuteForm] = useState({
@@ -195,6 +196,7 @@ export function CommuteStep({ commuteRecords, remoteWorkRecords, onAddCommute, o
                 title={r.description}
                 subtitle={`${r.collaboratorId} · ${r.transportSubType} · ${r.segmentDistance} km/trecho`}
                 value={r.totalCO2e.toFixed(3)}
+                isNew={newRecordIds.has(r.id)}
                 onDelete={() => onDeleteCommute(r.id)}
               />
             ))}
@@ -243,6 +245,7 @@ export function CommuteStep({ commuteRecords, remoteWorkRecords, onAddCommute, o
                 title={r.description}
                 subtitle={`${r.numberOfEmployees} funcionários · ${r.remoteDaysPerWeek} dias/semana`}
                 value={r.totalCO2e.toFixed(3)}
+                isNew={newRecordIds.has(r.id)}
                 onDelete={() => onDeleteRemoteWork(r.id)}
               />
             ))}
