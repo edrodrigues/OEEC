@@ -532,3 +532,73 @@ export async function createRemoteWork(data: any) {
 export async function deleteRemoteWork(id: string) {
   await deleteDoc(doc(db, REMOTE_WORK_COLLECTION, id));
 }
+
+export interface InventoryTotals {
+  scope1: {
+    stationaryCombustion: number;
+    mobileCombustion: number;
+    total: number;
+  };
+  scope2: {
+    locationBased: number;
+    marketBased: number;
+    total: number;
+  };
+  scope3: {
+    businessTravel: number;
+    commute: number;
+    remoteWork: number;
+    tdLosses: number;
+    total: number;
+  };
+  grandTotal: number;
+  totalBiogenicCO2: number;
+}
+
+export async function getInventoryTotals(inventoryId: string): Promise<InventoryTotals> {
+  const [
+    stationarySnap,
+    mobileSnap,
+    electricitySnap,
+    marketSnap,
+    tdLossesSnap,
+    travelSnap,
+    commuteSnap,
+    remoteSnap,
+  ] = await Promise.all([
+    getDocs(query(collection(db, STATIONARY_COMBUSTION_COLLECTION), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, MOBILE_COMBUSTION_COLLECTION), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, ELECTRICITY_COLLECTION), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, MARKET_BASED_COLLECTION), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, TD_LOSSES_COLLECTION), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, BUSINESS_TRAVEL_COLLECTION), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, COMMUTE_COLLECTION), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, REMOTE_WORK_COLLECTION), where("inventoryId", "==", inventoryId))),
+  ]);
+
+  const stationary = stationarySnap.docs.reduce((s, d) => s + (d.data().emissionCO2e || 0), 0);
+  const mobile = mobileSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+  const locationBased = electricitySnap.docs.reduce((s, d) => s + (d.data().totalEmissions || 0), 0);
+  const marketBased = marketSnap.docs.reduce((s, d) => s + (d.data().totalEmissions || 0), 0);
+  const tdLosses = tdLossesSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+  const travel = travelSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+  const commute = commuteSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+  const remote = remoteSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+
+  const scope1Total = stationary + mobile;
+  const scope2Total = locationBased + marketBased;
+  const scope3Total = tdLosses + travel + commute + remote;
+
+  const biogenic = [
+    ...stationarySnap.docs,
+    ...mobileSnap.docs,
+  ].reduce((s, d) => s + (d.data().biogenicCO2 || 0), 0);
+
+  return {
+    scope1: { stationaryCombustion: stationary, mobileCombustion: mobile, total: scope1Total },
+    scope2: { locationBased, marketBased, total: scope2Total },
+    scope3: { businessTravel: travel, commute, remoteWork: remote, tdLosses, total: scope3Total },
+    grandTotal: scope1Total + scope2Total + scope3Total,
+    totalBiogenicCO2: biogenic,
+  };
+}
