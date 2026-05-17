@@ -151,25 +151,42 @@ export default function InventoryPage() {
   }
 
   async function loadAllRecords(inventoryId: string) {
-    try {
-      const [stationary, mobile, elecLoc, elecMarket, bizTravel, commute, remote] = await Promise.all([
-        getStationaryCombustion(inventoryId),
-        getMobileCombustion(inventoryId),
-        getElectricityConsumption(inventoryId),
-        getMarketBasedEnergy(inventoryId),
-        getBusinessTravel(inventoryId),
-        getCommute(inventoryId),
-        getRemoteWork(inventoryId),
-      ]);
-      setStationaryRecords(stationary);
-      setMobileRecords(mobile);
-      setElectricityLocationRecords(elecLoc);
-      setElectricityMarketRecords(elecMarket);
-      setBusinessTravelRecords(bizTravel);
-      setCommuteRecords(commute);
-      setRemoteWorkRecords(remote);
-    } catch {
-      addToast("error", "Erro ao carregar registros.");
+    const results = await Promise.allSettled([
+      getStationaryCombustion(inventoryId),
+      getMobileCombustion(inventoryId),
+      getElectricityConsumption(inventoryId),
+      getMarketBasedEnergy(inventoryId),
+      getBusinessTravel(inventoryId),
+      getCommute(inventoryId),
+      getRemoteWork(inventoryId),
+    ]);
+
+    const [stationary, mobile, elecLoc, elecMarket, bizTravel, commute, remote] = results;
+
+    if (stationary.status === "fulfilled") setStationaryRecords(stationary.value);
+    else { addToast("error", "Erro ao carregar combustão estacionária."); setStationaryRecords([]); }
+
+    if (mobile.status === "fulfilled") setMobileRecords(mobile.value);
+    else { setMobileRecords([]); }
+
+    if (elecLoc.status === "fulfilled") setElectricityLocationRecords(elecLoc.value);
+    else { addToast("error", "Erro ao carregar energia elétrica."); setElectricityLocationRecords([]); }
+
+    if (elecMarket.status === "fulfilled") setElectricityMarketRecords(elecMarket.value);
+    else { setElectricityMarketRecords([]); }
+
+    if (bizTravel.status === "fulfilled") setBusinessTravelRecords(bizTravel.value);
+    else { setBusinessTravelRecords([]); }
+
+    if (commute.status === "fulfilled") setCommuteRecords(commute.value);
+    else { setCommuteRecords([]); }
+
+    if (remote.status === "fulfilled") setRemoteWorkRecords(remote.value);
+    else { setRemoteWorkRecords([]); }
+
+    const failed = results.filter((r) => r.status === "rejected");
+    if (failed.length > 0) {
+      console.error("Failed to load collections:", failed);
     }
   }
 
