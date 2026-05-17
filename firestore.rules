@@ -152,5 +152,33 @@ service cloud.firestore {
       allow create, update: if isAuthenticated() && isEditor();
       allow delete: if isAuthenticated() && isAdmin();
     }
+
+    // Mobile combustion
+    match /mobile_combustion/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Business travel
+    match /business_travel/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Commute
+    match /commute/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Remote work
+    match /remote_work/{docId} {
+      allow read: if isAuthenticated() && belongsToUserOrgViaInventory(resource.data.inventoryId);
+      allow create, update: if isAuthenticated() && isEditor();
+      allow delete: if isAuthenticated() && isAdmin();
+    }
   }
 }

@@ -576,14 +576,23 @@ export async function getInventoryTotals(inventoryId: string): Promise<Inventory
     getDocs(query(collection(db, REMOTE_WORK_COLLECTION), where("inventoryId", "==", inventoryId))),
   ]);
 
-  const stationary = stationarySnap.docs.reduce((s, d) => s + (d.data().emissionCO2e || 0), 0);
-  const mobile = mobileSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
-  const locationBased = electricitySnap.docs.reduce((s, d) => s + (d.data().totalEmissions || 0), 0);
-  const marketBased = marketSnap.docs.reduce((s, d) => s + (d.data().totalEmissions || 0), 0);
-  const tdLosses = tdLossesSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
-  const travel = travelSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
-  const commute = commuteSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
-  const remote = remoteSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+  const stationary = stationarySnap.docs.reduce((s, d) => {
+    const data = d.data();
+    return s + ((data.totalCO2e ?? data.emissionCO2e ?? 0) as number);
+  }, 0);
+  const mobile = mobileSnap.docs.reduce((s, d) => s + ((d.data().totalCO2e ?? 0) as number), 0);
+  const locationBased = electricitySnap.docs.reduce((s, d) => {
+    const data = d.data();
+    return s + ((data.totalEmissions ?? data.totalCO2e ?? 0) as number);
+  }, 0);
+  const marketBased = marketSnap.docs.reduce((s, d) => {
+    const data = d.data();
+    return s + ((data.totalEmissions ?? data.totalCO2e ?? 0) as number);
+  }, 0);
+  const tdLosses = tdLossesSnap.docs.reduce((s, d) => s + ((d.data().totalCO2e ?? 0) as number), 0);
+  const travel = travelSnap.docs.reduce((s, d) => s + ((d.data().totalCO2e ?? 0) as number), 0);
+  const commute = commuteSnap.docs.reduce((s, d) => s + ((d.data().totalCO2e ?? 0) as number), 0);
+  const remote = remoteSnap.docs.reduce((s, d) => s + ((d.data().totalCO2e ?? 0) as number), 0);
 
   const scope1Total = stationary + mobile;
   const scope2Total = locationBased + marketBased;
@@ -592,7 +601,7 @@ export async function getInventoryTotals(inventoryId: string): Promise<Inventory
   const biogenic = [
     ...stationarySnap.docs,
     ...mobileSnap.docs,
-  ].reduce((s, d) => s + (d.data().biogenicCO2 || 0), 0);
+  ].reduce((s, d) => s + ((d.data().biogenicCO2 ?? 0) as number), 0);
 
   return {
     scope1: { stationaryCombustion: stationary, mobileCombustion: mobile, total: scope1Total },
