@@ -9,6 +9,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getESGData } from "./esg";
+import { getOrganizationRanking } from "./ranking";
 
 export interface DashboardSummary {
   totalEnergyConsumption: number;
@@ -21,6 +23,11 @@ export interface DashboardSummary {
   renewablePercentage: number;
   tdLossPercentage: number;
   yearOverYearChange: number;
+  completionPercentage: number;
+  inventoryCount: number;
+  latestInventoryYear: number;
+  organizationName: string;
+  organizationSector: string;
 }
 
 export interface MonthlyData {
@@ -34,6 +41,36 @@ export interface ScopeBreakdown {
   value: number;
   color: string;
   percentage: number;
+}
+
+export interface Scope3Breakdown {
+  tdLosses: number;
+  businessTravel: number;
+  commute: number;
+  remoteWork: number;
+  total: number;
+}
+
+export interface SourceBreakdown {
+  label: string;
+  value: number;
+  scope: string;
+  color: string;
+}
+
+export interface ESGSummary {
+  overallScore: number;
+  environmental: number;
+  social: number;
+  governance: number;
+  renewablePercentage: number;
+  carbonIntensity: number;
+}
+
+export interface RankingSummary {
+  scoreTotal: number;
+  tier: "A" | "B" | "C" | "D" | "E";
+  position?: number;
 }
 
 export async function getDashboardSummary(
@@ -59,16 +96,24 @@ export async function getDashboardSummary(
       renewablePercentage: 0,
       tdLossPercentage: 0,
       yearOverYearChange: 0,
+      completionPercentage: 0,
+      inventoryCount: 0,
+      latestInventoryYear: 0,
+      organizationName: "",
+      organizationSector: "",
     };
   }
 
   const inventories = inventoriesSnap.docs.map((d) => ({
     id: d.id,
+    year: d.data().year,
+    organizationName: d.data().organizationName,
+    sector: d.data().sector,
     ...d.data(),
   }));
   const latestInventory = inventories[0];
 
-  const [stationary, electricity, tdLosses, marketBased] =
+  const [stationary, electricity, tdLosses, marketBased, mobile, travel, commute, remote] =
     await Promise.all([
       getDocs(
         query(
@@ -94,12 +139,36 @@ export async function getDashboardSummary(
           where("inventoryId", "==", latestInventory.id)
         )
       ),
+      getDocs(
+        query(
+          collection(db, "mobile_combustion"),
+          where("inventoryId", "==", latestInventory.id)
+        )
+      ),
+      getDocs(
+        query(
+          collection(db, "business_travel"),
+          where("inventoryId", "==", latestInventory.id)
+        )
+      ),
+      getDocs(
+        query(
+          collection(db, "commute"),
+          where("inventoryId", "==", latestInventory.id)
+        )
+      ),
+      getDocs(
+        query(
+          collection(db, "remote_work"),
+          where("inventoryId", "==", latestInventory.id)
+        )
+      ),
     ]);
 
-  const scope1 = stationary.docs.reduce(
-    (sum, d) => sum + (d.data().emissionCO2e || 0),
-    0
-  );
+  const scope1 =
+    stationary.docs.reduce((sum, d) => sum + (d.data().emissionCO2e || 0), 0) +
+    mobile.docs.reduce((sum, d) => sum + (d.data().totalCO2e || 0), 0);
+
   const scope2Location = electricity.docs.reduce(
     (sum, d) => sum + (d.data().totalEmissions || 0),
     0
@@ -108,10 +177,13 @@ export async function getDashboardSummary(
     (sum, d) => sum + (d.data().totalEmissions || 0),
     0
   );
-  const scope3 = tdLosses.docs.reduce(
-    (sum, d) => sum + (d.data().totalCO2e || 0),
-    0
-  );
+
+  const scope3 =
+    tdLosses.docs.reduce((sum, d) => sum + (d.data().totalCO2e || 0), 0) +
+    travel.docs.reduce((sum, d) => sum + (d.data().totalCO2e || 0), 0) +
+    commute.docs.reduce((sum, d) => sum + (d.data().totalCO2e || 0), 0) +
+    remote.docs.reduce((sum, d) => sum + (d.data().totalCO2e || 0), 0);
+
   const totalEmissions = scope1 + scope2Location + scope2Market + scope3;
 
   const totalEnergy =
@@ -158,6 +230,22 @@ export async function getDashboardSummary(
     yearOverYearChange = previous > 0 ? ((latest - previous) / previous) * 100 : 0;
   }
 
+  let completionPercentage = 0;
+  const steps = ["stationary_combustion", "mobile_combustion", "electricity_consumption", "market_based_energy", "business_travel", "commute", "remote_work"];
+  const filledSteps = steps.filter((col) => {
+    const snap = {
+      stationary_combustion: stationary,
+      mobile_combustion: mobile,
+      electricity_consumption: electricity,
+      market_based_energy: marketBased,
+      business_travel: travel,
+      commute: commute,
+      remote_work: remote,
+    }[col];
+    return snap && snap.docs.length > 0;
+  });
+  completionPercentage = Math.round((filledSteps.length / steps.length) * 100);
+
   return {
     totalEnergyConsumption: totalEnergy,
     totalEmissions,
@@ -169,6 +257,11 @@ export async function getDashboardSummary(
     renewablePercentage,
     tdLossPercentage,
     yearOverYearChange,
+    completionPercentage,
+    inventoryCount: inventoriesSnap.size,
+    latestInventoryYear: latestInventory.year || 0,
+    organizationName: orgData?.name || latestInventory.organizationName || "",
+    organizationSector: orgData?.sector || latestInventory.sector || "",
   };
 }
 
@@ -435,4 +528,157 @@ export async function getFuelBreakdown(
   return Object.entries(breakdown)
     .map(([fuel, emissions]) => ({ fuel, emissions }))
     .sort((a, b) => b.emissions - a.emissions);
+}
+
+export async function getScope3Breakdown(
+  inventoryId: string
+): Promise<Scope3Breakdown> {
+  const [tdLossesSnap, travelSnap, commuteSnap, remoteSnap] =
+    await Promise.all([
+      getDocs(
+        query(collection(db, "td_losses"), where("inventoryId", "==", inventoryId))
+      ),
+      getDocs(
+        query(collection(db, "business_travel"), where("inventoryId", "==", inventoryId))
+      ),
+      getDocs(
+        query(collection(db, "commute"), where("inventoryId", "==", inventoryId))
+      ),
+      getDocs(
+        query(collection(db, "remote_work"), where("inventoryId", "==", inventoryId))
+      ),
+    ]);
+
+  const tdLosses = tdLossesSnap.docs.reduce(
+    (sum, d) => sum + (d.data().totalCO2e || 0), 0
+  );
+  const businessTravel = travelSnap.docs.reduce(
+    (sum, d) => sum + (d.data().totalCO2e || 0), 0
+  );
+  const commute = commuteSnap.docs.reduce(
+    (sum, d) => sum + (d.data().totalCO2e || 0), 0
+  );
+  const remoteWork = remoteSnap.docs.reduce(
+    (sum, d) => sum + (d.data().totalCO2e || 0), 0
+  );
+
+  return {
+    tdLosses,
+    businessTravel,
+    commute,
+    remoteWork,
+    total: tdLosses + businessTravel + commute + remoteWork,
+  };
+}
+
+export async function getSourceBreakdown(
+  inventoryId: string
+): Promise<SourceBreakdown[]> {
+  const [
+    stationarySnap,
+    mobileSnap,
+    electricitySnap,
+    marketSnap,
+    tdSnap,
+    travelSnap,
+    commuteSnap,
+    remoteSnap,
+  ] = await Promise.all([
+    getDocs(query(collection(db, "stationary_combustion"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "mobile_combustion"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "electricity_consumption"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "market_based_energy"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "td_losses"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "business_travel"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "commute"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "remote_work"), where("inventoryId", "==", inventoryId))),
+  ]);
+
+  const sources: SourceBreakdown[] = [];
+  const pushIf = (label: string, value: number, scope: string, color: string) => {
+    if (value > 0) sources.push({ label, value, scope, color });
+  };
+
+  pushIf("Combustão Estacionária", stationarySnap.docs.reduce((s, d) => s + (d.data().emissionCO2e || 0), 0), "Escopo 1", "#efc13e");
+  pushIf("Combustão Móvel", mobileSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0), "Escopo 1", "#e6b800");
+  pushIf("Eletricidade (SIN)", electricitySnap.docs.reduce((s, d) => s + (d.data().totalEmissions || 0), 0), "Escopo 2", "#765b00");
+  pushIf("Eletricidade (Compra)", marketSnap.docs.reduce((s, d) => s + (d.data().totalEmissions || 0), 0), "Escopo 2", "#5a4500");
+  pushIf("Perdas T&D", tdSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0), "Escopo 3", "#5f5e5e");
+  pushIf("Viagens Corporativas", travelSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0), "Escopo 3", "#4a4949");
+  pushIf("Deslocamento Casa-Trabalho", commuteSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0), "Escopo 3", "#3a3939");
+  pushIf("Trabalho Remoto", remoteSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0), "Escopo 3", "#2a2929");
+
+  return sources.sort((a, b) => b.value - a.value);
+}
+
+export async function getESGSummary(
+  organizationId: string
+): Promise<ESGSummary | null> {
+  const esg = await getESGData(organizationId);
+  if (!esg) return null;
+
+  return {
+    overallScore: esg.overallScore,
+    environmental: esg.environmental.totalScore,
+    social: esg.social.totalScore,
+    governance: esg.governance.totalScore,
+    renewablePercentage: esg.environmental.renewablePercentage,
+    carbonIntensity: esg.environmental.carbonIntensity,
+  };
+}
+
+export async function getRankingSummary(
+  organizationId: string
+): Promise<RankingSummary | null> {
+  const ranking = await getOrganizationRanking(organizationId);
+  if (!ranking) return null;
+
+  return {
+    scoreTotal: ranking.scoreTotal,
+    tier: ranking.tier,
+  };
+}
+
+export async function getMonthlyEmissionsByScope(
+  inventoryId: string
+): Promise<{ month: string; scope1: number; scope2: number; scope3: number }[]> {
+  const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+  const [stationarySnap, electricitySnap, tdSnap, mobileSnap] = await Promise.all([
+    getDocs(query(collection(db, "stationary_combustion"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "electricity_consumption"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "td_losses"), where("inventoryId", "==", inventoryId))),
+    getDocs(query(collection(db, "mobile_combustion"), where("inventoryId", "==", inventoryId))),
+  ]);
+
+  const monthly: Record<string, { scope1: number; scope2: number; scope3: number }> = {};
+  MONTHS.forEach((m) => { monthly[m] = { scope1: 0, scope2: 0, scope3: 0 }; });
+
+  const statTotal = stationarySnap.docs.reduce((s, d) => s + (d.data().emissionCO2e || 0), 0);
+  const mobileTotal = mobileSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+  if (statTotal + mobileTotal > 0) {
+    const perMonth = (statTotal + mobileTotal) / 12;
+    MONTHS.forEach((m) => { monthly[m].scope1 += perMonth; });
+  }
+
+  electricitySnap.docs.forEach((d) => {
+    const record = d.data();
+    const mc = record.monthlyConsumption || {};
+    const factors = record.sinFactors || {};
+    const annualFactor = record.annualSinFactor || 0;
+    MONTHS.forEach((m, i) => {
+      const key = m.toLowerCase();
+      const consumption = mc[key] || 0;
+      const factor = factors[key] || annualFactor / 12;
+      monthly[m].scope2 += consumption * factor;
+    });
+  });
+
+  const tdTotal = tdSnap.docs.reduce((s, d) => s + (d.data().totalCO2e || 0), 0);
+  if (tdTotal > 0) {
+    const perMonth = tdTotal / 12;
+    MONTHS.forEach((m) => { monthly[m].scope3 += perMonth; });
+  }
+
+  return MONTHS.map((m) => ({ month: m, ...monthly[m] }));
 }
